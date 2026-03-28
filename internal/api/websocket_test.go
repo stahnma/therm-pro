@@ -13,7 +13,7 @@ import (
 )
 
 func TestWebSocketReceivesReading(t *testing.T) {
-	srv := NewServer(":0", "", "")
+	srv := NewServer(":0", "", "", "")
 	mux := srv.Routes()
 	ts := httptest.NewServer(mux)
 	defer ts.Close()

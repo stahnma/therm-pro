@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/stahnma/therm-pro/internal/cook"
+	"github.com/stahnma/therm-pro/internal/firmware"
 	"github.com/stahnma/therm-pro/internal/slack"
 )
 
@@ -17,6 +18,7 @@ type Server struct {
 	session     *cook.Session
 	alerts      *cook.AlertEngine
 	slack       *slack.Client
+	firmware    *firmware.Store
 	sessionPath string
 	wsClients   map[*wsClient]bool
 	wsMu        sync.Mutex
@@ -43,7 +45,7 @@ type AlertPayload struct {
 
 // NewServer creates a new Server with the given address, Slack webhook URL,
 // and session persistence path.
-func NewServer(addr, slackWebhook, sessionPath string) *Server {
+func NewServer(addr, slackWebhook, sessionPath, firmwareDir string) *Server {
 	session, err := cook.Load(sessionPath)
 	if err != nil {
 		log.Printf("warning: could not load session: %v", err)
@@ -54,6 +56,7 @@ func NewServer(addr, slackWebhook, sessionPath string) *Server {
 		session:     session,
 		alerts:      cook.NewAlertEngine(),
 		slack:       slack.NewClient(slackWebhook),
+		firmware:    firmware.NewStore(firmwareDir),
 		sessionPath: sessionPath,
 		wsClients:   make(map[*wsClient]bool),
 	}
