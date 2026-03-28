@@ -148,7 +148,53 @@ internal/firmware/              -- OTA firmware serving
 - Multi-user support
 - Historical cook comparison / long-term storage
 
-## Open Questions
+## BLE Protocol Reference
 
-- Exact BLE service/characteristic UUIDs for the TP25 (reference community reverse-engineering)
-- Byte layout for decoding 4 probe temps from BLE notifications
+Reverse-engineered by the community. Key references:
+- [daniel-corbett/thermopro-cli](https://github.com/daniel-corbett/thermopro-cli) (Python, most portable reference)
+- [martin-hughes/thermopro-tools](https://github.com/martin-hughes/thermopro-tools) (Rust, cleanest protocol docs)
+- [Marty's Blog: Reverse Engineering a ThermoPro](https://martys.blog/posts/thermopro) (5-part series)
+
+**BLE UUIDs**
+
+| Role | UUID |
+|------|------|
+| Service | `1086FFF0-3343-4817-8BB2-B32206336CE8` |
+| Write (command) | `1086FFF1-3343-4817-8BB2-B32206336CE8` |
+| Notify (data) | `1086FFF2-3343-4817-8BB2-B32206336CE8` |
+
+Device advertises as `"Thermopro"` (case-sensitive).
+
+**Connection Sequence**
+1. Connect over BLE
+2. Subscribe to notifications on FFF2
+3. Write handshake to FFF1: `01 09 70 32 e2 c1 79 9d b4 d1 c7 b1`
+4. Device responds with 0x01 ack, then streams 0x30 temperature notifications (~1/sec)
+
+**Temperature Notification (0x30) Layout**
+
+| Offset | Size | Field |
+|--------|------|-------|
+| 0 | 1 | Type: `0x30` |
+| 1 | 1 | Length: `0x0F` |
+| 2 | 1 | Battery % |
+| 3 | 1 | Unit: `0x0C` = C, `0x0F` = F |
+| 4 | 1 | Alarm bitmask |
+| 5-6 | 2 | Probe 1 temp (BCD) |
+| 7-8 | 2 | Probe 2 temp (BCD) |
+| 9-10 | 2 | Probe 3 temp (BCD) |
+| 11-12 | 2 | Probe 4 temp (BCD) |
+| 13-17 | 5 | Remaining bytes + checksum |
+
+**BCD Decoding (2 bytes per probe)**
+```
+is_negative = (byte1 & 0x80) != 0
+hundreds    = ((byte1 >> 4) & 0x07) * 100
+tens        = (byte1 & 0x0F) * 10
+ones        = (byte2 >> 4) & 0x0F
+tenths      = (byte2 & 0x0F) * 0.1
+temperature = hundreds + tens + ones + tenths
+if is_negative: temperature = -temperature
+```
+
+**Sentinel values:** `FF FF` = probe not connected, `DD DD` = error, `EE EE` = over-temp
