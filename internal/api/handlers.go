@@ -22,12 +22,6 @@ type Server struct {
 	wsMu        sync.Mutex
 }
 
-// wsClient is a placeholder - will be implemented in Task 7.
-type wsClient struct {
-	conn interface{}
-	send chan []byte
-}
-
 // ProbeReading represents a single probe temperature reading from the device.
 type ProbeReading struct {
 	ID    int     `json:"id"`
@@ -107,7 +101,7 @@ func (s *Server) handlePostData(w http.ResponseWriter, r *http.Request) {
 	}
 	s.session.RUnlock()
 
-	// Broadcast to WebSocket clients (stub for now).
+	// Broadcast to WebSocket clients.
 	s.broadcast(reading)
 
 	w.WriteHeader(http.StatusOK)
@@ -145,7 +139,3 @@ func (s *Server) handlePostAlerts(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-// broadcast is a stub - will be implemented in Task 7.
-func (s *Server) broadcast(reading cook.Reading) {
-	// No-op until WebSocket is implemented.
-}
