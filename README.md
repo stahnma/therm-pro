@@ -119,14 +119,6 @@ The generated `esp32/src/config.h` is gitignored. A reference template is availa
 
 Flashing uses [espflash](https://github.com/esp-rs/espflash) (a Rust-based flasher provided by flox) instead of PlatformIO's esptool, which avoids pyserial compatibility issues under nix.
 
-**Note:** PlatformIO under Flox may require disabling the virtualenv check on first run:
-
-```bash
-PIP_REQUIRE_VIRTUALENV=false pio run
-```
-
-This is only needed the first time PlatformIO installs its ESP32 toolchain dependencies.
-
 ### 3. Open the Dashboard
 
 Open `http://<server-ip>:8080` in a browser. You should see 4 probe cards updating in real time once the ESP32 connects to the TP25.
@@ -338,7 +330,6 @@ Alert messages include the alert details and current temps for all 4 probes.
 - Check serial monitor for connection errors
 
 ### PlatformIO build fails under Flox
-- Run with `PIP_REQUIRE_VIRTUALENV=false pio run` on the first build
 - If the ESP32 toolchain fails to install, try `pio pkg install` separately first
 
 ### ESP32 flashing fails

@@ -20,7 +20,7 @@ espflash.pkg-path = "espflash"
 ##      as well as [hook], [profile] scripts and [services] below.
 ## -------------------------------------------------------------------
 [vars]
-# INTRO_MESSAGE = "It's gettin' Flox in here"
+PIP_REQUIRE_VIRTUALENV = "false"
 
 
 ## Activation Hook ---------------------------------------------------
