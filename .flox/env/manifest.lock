@@ -16,6 +16,9 @@
         "pkg-path": "platformio"
       }
     },
+    "vars": {
+      "PIP_REQUIRE_VIRTUALENV": "false"
+    },
     "hook": {},
     "profile": {},
     "options": {}

@@ -34,7 +34,7 @@ const modalCancel   = document.getElementById("modal-cancel");
 function toDisplay(f) {
   if (f === null || f === undefined || f === DISCONNECTED) return "---";
   const v = useCelsius ? (f - 32) * 5 / 9 : f;
-  return Math.round(v) + "\u00B0";
+  return Math.round(v) + "\u00B0" + (useCelsius ? "C" : "F");
 }
 
 function unitLabel() { return useCelsius ? "\u00B0C" : "\u00B0F"; }
@@ -211,7 +211,7 @@ function chartOpts() {
         grid: { stroke: gridStroke },
         values: (_, ticks) => ticks.map(v => {
           const d = useCelsius ? (v - 32) * 5 / 9 : v;
-          return Math.round(d) + "\u00B0";
+          return Math.round(d) + "\u00B0" + (useCelsius ? "C" : "F");
         }),
       },
     ],
