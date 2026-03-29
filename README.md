@@ -408,27 +408,27 @@ The top-level `status` is `"ok"` when everything is healthy, or `"degraded"` whe
 
 ## Troubleshooting
 
-### ESP32 won't connect to TP25
+#### ESP32 won't connect to TP25
 - Make sure the TP25 is powered on and not connected to another device (phone app, etc.)
 - The TP25 advertises as "Thermopro" -- check serial monitor output for scan results
 - Try power cycling both the TP25 and ESP32
 
-### ESP32 can't reach the server
+#### ESP32 can't reach the server
 - Verify WiFi credentials in `config.h`
 - If using Consul DNS, verify `tp25.service.dc1.consul` resolves: `dig tp25.service.dc1.consul`
 - If not using Consul, check that `ESP32_SERVER_URL` matches the server's LAN IP
 - Ensure the ESP32 and server are on the same network
 - Check serial monitor for connection errors
 
-### PlatformIO build fails under Flox
+#### PlatformIO build fails under Flox
 - If the ESP32 toolchain fails to install, try `pio pkg install` separately first
 
-### ESP32 flashing fails
+#### ESP32 flashing fails
 - Make sure you're using `make esp32-flash` (uses espflash) rather than `pio run -t upload` (uses pyserial, which has issues under nix)
 - If espflash can't find the port, try `espflash flash --port /dev/cu.usbserial-XXXXX esp32/.pio/build/esp32/firmware.elf`
 - Run `espflash list-ports` to see available serial ports
 
-### Dashboard not updating
+#### Dashboard not updating
 - Check that the ESP32 is connected (solid LED)
 - Open browser dev tools and check the WebSocket connection to `/api/ws`
 - Verify data is arriving: `curl http://localhost:8088/api/session`
