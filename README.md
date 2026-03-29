@@ -36,16 +36,17 @@ brew install flox
 git clone https://github.com/stahnma/therm-pro.git
 cd therm-pro
 
-# Activate the Flox environment (installs Go, PlatformIO, GNU Make)
+# Activate the Flox environment (installs Go, PlatformIO, espflash, GNU Make)
 flox activate
 ```
 
 Once inside the Flox environment, all tools are available. You can verify with:
 
 ```bash
-go version       # Go compiler
-pio --version    # PlatformIO
-make --version   # GNU Make
+go version         # Go compiler
+pio --version      # PlatformIO (build)
+espflash --version # ESP32 flasher
+make --version     # GNU Make
 ```
 
 ## Quick Start
@@ -104,20 +105,21 @@ hostname -I | awk '{print $1}'
 Build and flash (inside the flox environment):
 
 ```bash
-# Generate config.h from env vars and build
-make esp32-build
+# Generate config.h, build, and flash in one step (connect ESP32 first)
+make esp32-flash
 
-# Or just generate config.h without building
-make esp32-config
-
-# Flash via USB (connect ESP32 first)
-cd esp32 && pio run -t upload
+# Or step by step:
+make esp32-config    # Generate config.h from env vars
+make esp32-build     # Compile firmware
+make esp32-flash     # Build + flash via USB
 
 # Monitor serial output (useful for verifying WiFi/BLE connection)
-pio device monitor
+make esp32-monitor
 ```
 
 The generated `esp32/src/config.h` is gitignored. A reference template is available at `esp32/src/config.h.example`.
+
+Flashing uses [espflash](https://github.com/esp-rs/espflash) (a Rust-based flasher provided by flox) instead of PlatformIO's esptool, which avoids pyserial compatibility issues under nix.
 
 **Note:** PlatformIO under Flox may require disabling the virtualenv check on first run:
 
@@ -125,7 +127,7 @@ The generated `esp32/src/config.h` is gitignored. A reference template is availa
 PIP_REQUIRE_VIRTUALENV=false pio run
 ```
 
-Subsequent runs should work without this. This is only needed the first time PlatformIO installs its ESP32 toolchain dependencies.
+This is only needed the first time PlatformIO installs its ESP32 toolchain dependencies.
 
 ### 3. Open the Dashboard
 
@@ -338,6 +340,11 @@ Alert messages include the alert details and current temps for all 4 probes.
 ### PlatformIO build fails under Flox
 - Run with `PIP_REQUIRE_VIRTUALENV=false pio run` on the first build
 - If the ESP32 toolchain fails to install, try `pio pkg install` separately first
+
+### ESP32 flashing fails
+- Make sure you're using `make esp32-flash` (uses espflash) rather than `pio run -t upload` (uses pyserial, which has issues under nix)
+- If espflash can't find the port, try `espflash flash --port /dev/cu.usbserial-XXXXX esp32/.pio/build/esp32/firmware.elf`
+- Run `espflash list-ports` to see available serial ports
 
 ### Dashboard not updating
 - Check that the ESP32 is connected (solid LED)

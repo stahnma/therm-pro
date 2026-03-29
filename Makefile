@@ -35,8 +35,8 @@ esp32-config: ## Generate esp32/src/config.h from env vars (ESP32_WIFI_SSID, ESP
 esp32-build: esp32-config ## Build ESP32 firmware (generates config.h first)
 	cd esp32 && pio run
 
-esp32-flash: esp32-build ## Build and flash ESP32 via USB
-	cd esp32 && pio run -t upload
+esp32-flash: esp32-build ## Build and flash ESP32 via USB (uses espflash)
+	espflash flash esp32/.pio/build/esp32/firmware.elf
 
-esp32-monitor: ## Monitor ESP32 serial output
-	cd esp32 && pio device monitor
+esp32-monitor: ## Monitor ESP32 serial output (uses espflash)
+	espflash monitor
