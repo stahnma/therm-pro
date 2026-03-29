@@ -145,7 +145,7 @@ header h1 {
 
 /* ── Main ────────────────────────────────────── */
 main {
-  padding: 1rem 1.25rem 2rem;
+  padding: 1rem 1.25rem 3.5rem;
   max-width: 960px;
   margin: 0 auto;
 }
@@ -272,4 +272,31 @@ main {
 .modal-buttons .btn {
   flex: 1;
   padding: 0.65rem;
+}
+
+/* ── Footer ─────────────────────────────────── */
+footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  text-align: center;
+  padding: 0.75rem 1rem;
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  background: var(--bg-header);
+  border-top: 1px solid var(--border);
+}
+
+footer a {
+  color: var(--text-dim);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: color 0.15s;
+}
+
+footer a:hover {
+  color: var(--text);
 }
