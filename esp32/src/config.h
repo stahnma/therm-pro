@@ -1,0 +1,18 @@
+// esp32/src/config.h
+#ifndef CONFIG_H
+#define CONFIG_H
+
+// WiFi configuration
+#define WIFI_SSID "your-ssid"
+#define WIFI_PASS "your-password"
+
+// Server configuration
+#define SERVER_URL "http://192.168.1.100:8080"
+
+// Firmware version (increment when uploading new firmware)
+#define FIRMWARE_VERSION 1
+
+// Hardware
+#define LED_PIN 2
+
+#endif
