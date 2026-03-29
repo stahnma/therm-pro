@@ -5,9 +5,11 @@
 #include <Update.h>
 #include <WiFi.h>
 
+extern String gServerURL;
+
 bool checkAndApplyOTA() {
     HTTPClient http;
-    String url = String(SERVER_URL) + "/api/firmware/latest";
+    String url = gServerURL + "/api/firmware/latest";
     http.begin(url);
     int code = http.GET();
 
@@ -33,7 +35,7 @@ bool checkAndApplyOTA() {
 
     // Download and flash
     HTTPClient dl;
-    dl.begin(String(SERVER_URL) + "/api/firmware/download");
+    dl.begin(gServerURL + "/api/firmware/download");
     int dlCode = dl.GET();
     if (dlCode != 200) {
         Serial.println("OTA: download failed");
