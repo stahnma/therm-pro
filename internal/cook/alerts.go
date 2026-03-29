@@ -39,7 +39,7 @@ func NewAlertEngine() *AlertEngine {
 	return &AlertEngine{
 		state:       make(map[int]*probeAlertState),
 		hysteresis:  DefaultHysteresis,
-		minInterval: 0,
+		minInterval: 60 * time.Second,
 	}
 }
 

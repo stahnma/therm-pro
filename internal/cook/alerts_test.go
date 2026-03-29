@@ -43,6 +43,7 @@ func TestAlertNotRepeated(t *testing.T) {
 
 func TestAlertResetsAfterHysteresis(t *testing.T) {
 	e := NewAlertEngine()
+	e.minInterval = 0 // disable rate limiting for this test
 	target := 203.0
 	probe := Probe{
 		ID: 2, Label: "Brisket", CurrentTemp: 203.0, Connected: true,
