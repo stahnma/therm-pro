@@ -1,0 +1,22 @@
+[Unit]
+Description=Therm-Pro Temperature Monitoring Server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=therm-pro
+Group=therm-pro
+ExecStart=/usr/local/bin/therm-pro-server
+Restart=on-failure
+RestartSec=5
+
+Environment=PORT=8088
+#Environment=THERM_PRO_SLACK_WEBHOOK=
+
+StateDirectory=therm-pro
+WorkingDirectory=/var/lib/therm-pro
+HOME=/var/lib/therm-pro
+
+[Install]
+WantedBy=multi-user.target

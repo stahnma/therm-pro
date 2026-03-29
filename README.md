@@ -257,6 +257,7 @@ The ThermoPro TP25 BLE protocol (UUIDs, handshake, notification frame format, BC
 ```
 therm-pro/
   .flox/                         Flox environment (Go, PlatformIO, Make)
+  contrib/                       systemd unit file, packaging helpers
   cmd/therm-pro-server/          Go server entry point
   internal/
     api/                         HTTP handlers, WebSocket, routes
@@ -322,6 +323,35 @@ GOOS=linux GOARCH=amd64 make build    # x86_64
 ```
 
 Copy `bin/therm-pro-server` to the target machine and run it.
+
+### Running as a systemd Service
+
+A systemd unit file is provided in `contrib/therm-pro-server.service`. To install:
+
+```bash
+# Create a dedicated user
+sudo useradd -r -s /sbin/nologin -d /var/lib/therm-pro therm-pro
+
+# Copy the binary
+sudo cp bin/therm-pro-server /usr/local/bin/
+
+# Install the unit file
+sudo cp contrib/therm-pro-server.service /etc/systemd/system/
+
+# (Optional) Set the Slack webhook
+sudo systemctl edit therm-pro-server
+# Add:
+#   [Service]
+#   Environment=THERM_PRO_SLACK_WEBHOOK=https://hooks.slack.com/services/T.../B.../...
+
+# Enable and start
+sudo systemctl daemon-reload
+sudo systemctl enable --now therm-pro-server
+
+# Check status
+sudo systemctl status therm-pro-server
+journalctl -u therm-pro-server -f
+```
 
 ## Slack Webhook Setup
 
