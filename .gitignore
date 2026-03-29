@@ -4,3 +4,4 @@ esp32/.vscode/
 esp32/src/config.h
 *.bin
 .DS_Store
+.env
