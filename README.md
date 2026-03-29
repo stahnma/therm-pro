@@ -27,53 +27,38 @@ The [ThermoPro TP25](https://buythermopro.com/products/tp25-wireless-leave-in-me
 - **Consul service discovery** -- server auto-registers with local Consul agent; ESP32 finds the server via DNS (`tp25.service.dc1.consul`)
 - **Graceful shutdown** -- server deregisters from Consul and drains connections on SIGINT/SIGTERM
 
-## Prerequisites
+## What You Need
 
-- **[Flox](https://flox.dev)** -- manages all development dependencies (Go, PlatformIO, GNU Make)
 - **ESP32 dev board** -- any ESP32 with WiFi and BLE (e.g., ESP32-DevKitC)
 - **ThermPro TP25** -- the Bluetooth BBQ thermometer
-
-## Setting Up the Development Environment
-
-This project uses [Flox](https://flox.dev) for dependency management. Flox provides Go, PlatformIO, and GNU Make in an isolated environment.
-
-```bash
-# Install Flox if you don't have it (https://flox.dev/docs/install)
-# macOS:
-brew install flox
-
-# Clone the repo
-git clone https://github.com/stahnma/therm-pro.git
-cd therm-pro
-
-# Activate the Flox environment (installs Go, PlatformIO, espflash, GNU Make)
-flox activate
-```
-
-Once inside the Flox environment, all tools are available. You can verify with:
-
-```bash
-go version         # Go compiler
-pio --version      # PlatformIO (build)
-espflash --version # ESP32 flasher
-make --version     # GNU Make
-```
+- **A machine to run the server** -- Linux, macOS, or anything that runs Go binaries (a Raspberry Pi works great)
 
 ## Quick Start
 
-### 1. Build and Run the Server
+### 1. Build the Server
+
+You'll need [Go 1.21+](https://go.dev/dl/) and GNU Make. If you use [Flox](https://flox.dev), `flox activate` provides all dependencies automatically.
 
 ```bash
-# Inside flox activate shell:
-
-# Build the server binary
+git clone https://github.com/stahnma/therm-pro.git
+cd therm-pro
 make build
+```
 
-# Run (listens on port 8088 by default)
+Cross-compile for a different target (e.g., Raspberry Pi):
+
+```bash
+GOOS=linux GOARCH=arm64 make build    # ARM64 (Raspberry Pi 4, etc.)
+GOOS=linux GOARCH=amd64 make build    # x86_64
+```
+
+### 2. Run the Server
+
+```bash
 ./bin/therm-pro-server
 ```
 
-The server stores session data in `~/.therm-pro/session.json`.
+The server listens on port 8088 by default and stores session data in `~/.therm-pro/session.json`.
 
 **Configuration via environment variables:**
 
@@ -82,54 +67,32 @@ The server stores session data in `~/.therm-pro/session.json`.
 | `PORT` | `8088` | HTTP server port |
 | `THERM_PRO_SLACK_WEBHOOK` | _(empty)_ | Slack incoming webhook URL for alerts |
 
-The server automatically registers itself as service `tp25` with the local Consul agent (`localhost:8500`) on startup, using the auto-detected LAN IP. If Consul isn't running, the server logs a warning and operates normally.
+The server automatically registers itself with the local Consul agent (`localhost:8500`) on startup. If Consul isn't running, the server logs a warning and operates normally.
 
-Example with Slack:
+### 3. Flash the ESP32
 
-```bash
-THERM_PRO_SLACK_WEBHOOK="https://hooks.slack.com/services/T.../B.../..." ./bin/therm-pro-server
-```
-
-### 2. Configure and Flash the ESP32
-
-Configuration is driven by environment variables so that secrets are never committed to git. Set these before building:
+Set your WiFi credentials and build/flash the firmware. You'll need [PlatformIO](https://docs.platformio.org/en/latest/core/installation.html) (or use `flox activate` which provides it).
 
 ```bash
 export ESP32_WIFI_SSID="your-wifi-name"
 export ESP32_WIFI_PASS="your-wifi-password"
 
-# Optional (these have defaults):
-# export ESP32_SERVER_URL="http://tp25.service.dc1.consul:8088"  # default; override if not using Consul DNS
-# export ESP32_FIRMWARE_VERSION=1
-# export ESP32_LED_PIN=2
-```
+# Optional: override if not using Consul DNS
+# export ESP32_SERVER_URL="http://192.168.1.100:8088"
 
-If you have Consul DNS forwarding set up (port 53), the default `SERVER_URL` of `http://tp25.service.dc1.consul:8088` will resolve automatically. Otherwise, set `ESP32_SERVER_URL` to the server's LAN IP.
-
-Build and flash (inside the flox environment):
-
-```bash
-# Generate config.h, build, and flash in one step (connect ESP32 first)
+# Generate config, build, and flash in one step (connect ESP32 via USB first)
 make esp32-flash
-
-# Or step by step:
-make esp32-config    # Generate config.h from env vars
-make esp32-build     # Compile firmware
-make esp32-flash     # Build + flash via USB
-
-# Monitor serial output (useful for verifying WiFi/BLE connection)
-make esp32-monitor
 ```
 
-The generated `esp32/src/config.h` is gitignored. A reference template is available at `esp32/src/config.h.example`.
+If you have Consul DNS forwarding set up, the default server URL of `http://tp25.service.dc1.consul:8088` resolves automatically. Otherwise, set `ESP32_SERVER_URL` to the server's LAN IP.
 
-Flashing uses [espflash](https://github.com/esp-rs/espflash) (a Rust-based flasher provided by flox) instead of PlatformIO's esptool, which avoids pyserial compatibility issues under nix.
+The generated `esp32/src/config.h` is gitignored. A reference template is at `esp32/src/config.h.example`.
 
-### 3. Open the Dashboard
+### 4. Open the Dashboard
 
 Open `http://<server-ip>:8088` in a browser. You should see 4 probe cards updating in real time once the ESP32 connects to the TP25.
 
-## Usage
+## Using Therm-Pro
 
 ### Setting Up a Cook
 
@@ -151,90 +114,9 @@ Alerts fire once when the threshold is crossed, then reset after the temperature
 
 ### Resetting Between Cooks
 
-Click the "Reset Cook" button on the dashboard (or `POST /api/session/reset`) to clear all temperature history. Probe labels and alert configurations are preserved.
+Click the "Reset Cook" button on the dashboard to clear all temperature history. Probe labels and alert configurations are preserved.
 
-## API
-
-All endpoints are available at `http://<server-ip>:8088`.
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/` | Web dashboard |
-| `GET` | `/healthz` | Health check (liveness probe for Consul) |
-| `GET` | `/api/docs` | API documentation page |
-| `GET` | `/diagnostics` | System diagnostics and connectivity status |
-| `POST` | `/api/data` | Submit probe readings (ESP32 uses this) |
-| `GET` | `/api/session` | Get current cook session |
-| `POST` | `/api/session/reset` | Reset cook session |
-| `POST` | `/api/alerts` | Set alert config for a probe |
-| `GET` | `/api/ws` | WebSocket for live updates |
-| `GET` | `/api/firmware/latest` | Check latest firmware version |
-| `GET` | `/api/firmware/download` | Download firmware binary |
-| `POST` | `/api/firmware/upload` | Upload new firmware binary |
-
-### Example: Submit Temperature Data
-
-```bash
-curl -X POST http://localhost:8088/api/data \
-  -H 'Content-Type: application/json' \
-  -d '{
-    "probes": [
-      {"id": 1, "temp_f": 250.0},
-      {"id": 2, "temp_f": 165.3},
-      {"id": 3, "temp_f": 180.1},
-      {"id": 4, "temp_f": -999.0}
-    ],
-    "battery": 85,
-    "firmware_version": 2,
-    "ble_connected": true
-  }'
-```
-
-A `temp_f` of `-999.0` indicates a disconnected probe. The `firmware_version` and `ble_connected` fields are optional and used by the `/diagnostics` endpoint to report ESP32 status.
-
-### Example: Set Alert
-
-```bash
-# Target temperature alert (meat probe)
-curl -X POST http://localhost:8088/api/alerts \
-  -H 'Content-Type: application/json' \
-  -d '{"probe_id": 2, "alert": {"target_temp": 203.0}}'
-```
-
-```bash
-# Range alert (pit probe)
-curl -X POST http://localhost:8088/api/alerts \
-  -H 'Content-Type: application/json' \
-  -d '{"probe_id": 1, "alert": {"low_temp": 225.0, "high_temp": 275.0}}'
-```
-
-## OTA Firmware Updates
-
-After the initial USB flash, you can update the ESP32 over WiFi:
-
-1. Make your code changes in `esp32/src/`
-2. Increment the firmware version and rebuild:
-
-```bash
-export ESP32_FIRMWARE_VERSION=2   # bump from previous version
-make esp32-build
-```
-
-4. Upload the binary to the server:
-
-```bash
-# Using make (uses ESP32_SERVER_URL or defaults to Consul address):
-make esp32-upload
-
-# Or manually with curl:
-curl -X POST http://localhost:8088/api/firmware/upload \
-  -F "firmware=@esp32/.pio/build/esp32/firmware.bin" \
-  -F "version=2"
-```
-
-5. Reboot the ESP32 (power cycle or reset button) -- it checks for updates on boot and will self-flash
-
-## ESP32 LED Status
+### ESP32 LED Status
 
 | LED State | Meaning |
 |-----------|---------|
@@ -242,89 +124,39 @@ curl -X POST http://localhost:8088/api/firmware/upload \
 | Solid on | Connected to TP25 and sending data |
 | Off | BLE disconnected, attempting reconnect |
 
-## Network Setup
+### OTA Firmware Updates
+
+After the initial USB flash, you can update the ESP32 over WiFi:
+
+1. Make your code changes in `esp32/src/`
+2. Bump the version and rebuild:
+   ```bash
+   export ESP32_FIRMWARE_VERSION=2
+   make esp32-build
+   ```
+3. Upload to the server:
+   ```bash
+   make esp32-upload
+   ```
+4. Reboot the ESP32 (power cycle or reset button) -- it checks for updates on boot and will self-flash
+
+### Slack Webhook Setup
+
+1. Go to [Slack API: Incoming Webhooks](https://api.slack.com/messaging/webhooks)
+2. Create a new app (or use an existing one)
+3. Enable Incoming Webhooks
+4. Add a new webhook to a channel of your choice
+5. Copy the webhook URL and set it as `THERM_PRO_SLACK_WEBHOOK`
+
+Alert messages include the alert details and current temps for all 4 probes.
+
+### Network Setup
 
 The server runs on your local network. The ESP32 and your phone/laptop need to be on the same network (or have routes to the server).
 
 **Accessing from outside your network:** Set up port forwarding on your router to forward an external port to `<server-ip>:8088`. The specifics depend on your router.
 
-## BLE Protocol
-
-The ThermoPro TP25 BLE protocol (UUIDs, handshake, notification frame format, BCD temperature encoding, and sentinel values) is documented in [docs/protocol.md](docs/protocol.md).
-
-## Project Structure
-
-```
-therm-pro/
-  .flox/                         Flox environment (Go, PlatformIO, Make)
-  contrib/                       systemd unit file, packaging helpers
-  cmd/therm-pro-server/          Go server entry point
-  internal/
-    api/                         HTTP handlers, WebSocket, routes
-    consul/                      Consul service registration
-    cook/                        Session data model, alerts, persistence
-    firmware/                    OTA firmware management
-    slack/                       Slack webhook client
-    web/static/                  Embedded dashboard (HTML/CSS/JS)
-  esp32/
-    src/                         ESP32 firmware (Arduino/C++)
-    platformio.ini               PlatformIO build config
-  docs/plans/                    Design and implementation docs
-```
-
-## Running Tests
-
-```bash
-# Inside flox activate shell:
-go test ./...
-```
-
-## Development
-
-### Building Without Flox
-
-If you prefer not to use Flox, install the dependencies manually:
-
-- [Go 1.21+](https://go.dev/dl/)
-- [PlatformIO Core](https://docs.platformio.org/en/latest/core/installation.html)
-- GNU Make
-
-Then use the same `make build`, `pio run`, etc. commands.
-
-### Simulating the ESP32
-
-You can develop and test the server without an ESP32 by simulating probe data with curl:
-
-```bash
-# Start the server
-make run
-
-# In another terminal, simulate temperature readings
-while true; do
-  curl -s -X POST http://localhost:8088/api/data \
-    -H 'Content-Type: application/json' \
-    -d "{\"probes\":[
-      {\"id\":1,\"temp_f\":$(shuf -i 240-260 -n 1)},
-      {\"id\":2,\"temp_f\":$(shuf -i 160-205 -n 1)},
-      {\"id\":3,\"temp_f\":$(shuf -i 170-195 -n 1)},
-      {\"id\":4,\"temp_f\":-999}
-    ],\"battery\":85}"
-  sleep 3
-done
-```
-
-### Cross-Compiling the Server
-
-The Go server can be cross-compiled for Linux (e.g., to run on a Raspberry Pi):
-
-```bash
-GOOS=linux GOARCH=arm64 make build    # ARM64 (Raspberry Pi 4, etc.)
-GOOS=linux GOARCH=amd64 make build    # x86_64
-```
-
-Copy `bin/therm-pro-server` to the target machine and run it.
-
-### Running as a systemd Service
+## Running as a systemd Service
 
 A systemd unit file is provided in `contrib/therm-pro-server.service`. To install:
 
@@ -353,17 +185,8 @@ sudo systemctl status therm-pro-server
 journalctl -u therm-pro-server -f
 ```
 
-## Slack Webhook Setup
-
-1. Go to [Slack API: Incoming Webhooks](https://api.slack.com/messaging/webhooks)
-2. Create a new app (or use an existing one)
-3. Enable Incoming Webhooks
-4. Add a new webhook to a channel of your choice
-5. Copy the webhook URL and set it as `THERM_PRO_SLACK_WEBHOOK`
-
-Alert messages include the alert details and current temps for all 4 probes.
-
-## Diagnostics
+<details>
+<summary>Diagnostics</summary>
 
 The `/diagnostics` endpoint provides a full connectivity health check across the system. Access it from the "Diagnostics" link in the dashboard nav bar or via curl:
 
@@ -396,7 +219,7 @@ Example response:
 }
 ```
 
-The top-level `status` is `"ok"` when everything is healthy, or `"degraded"` when any component has an issue. Here's what to look for:
+The top-level `status` is `"ok"` when everything is healthy, or `"degraded"` when any component has an issue.
 
 | Problem | What you'll see |
 |---------|-----------------|
@@ -406,7 +229,10 @@ The top-level `status` is `"ok"` when everything is healthy, or `"degraded"` whe
 | ESP32 can't find the TP25 | `esp32.ble_connected: false`, `esp32.status: "ble_disconnected"` |
 | Firmware version mismatch | Compare `server_firmware_version` vs `esp32.firmware_version` |
 
-## Troubleshooting
+</details>
+
+<details>
+<summary>Troubleshooting</summary>
 
 #### ESP32 won't connect to TP25
 - Make sure the TP25 is powered on and not connected to another device (phone app, etc.)
@@ -420,9 +246,6 @@ The top-level `status` is `"ok"` when everything is healthy, or `"degraded"` whe
 - Ensure the ESP32 and server are on the same network
 - Check serial monitor for connection errors
 
-#### PlatformIO build fails under Flox
-- If the ESP32 toolchain fails to install, try `pio pkg install` separately first
-
 #### ESP32 flashing fails
 - Make sure you're using `make esp32-flash` (uses espflash) rather than `pio run -t upload` (uses pyserial, which has issues under nix)
 - If espflash can't find the port, try `espflash flash --port /dev/cu.usbserial-XXXXX esp32/.pio/build/esp32/firmware.elf`
@@ -432,6 +255,12 @@ The top-level `status` is `"ok"` when everything is healthy, or `"degraded"` whe
 - Check that the ESP32 is connected (solid LED)
 - Open browser dev tools and check the WebSocket connection to `/api/ws`
 - Verify data is arriving: `curl http://localhost:8088/api/session`
+
+</details>
+
+## Development
+
+See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for developer documentation including the dev environment setup, project structure, API reference, testing, and simulating the ESP32 without hardware.
 
 ## License
 
