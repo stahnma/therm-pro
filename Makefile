@@ -1,4 +1,4 @@
-.PHONY: help build run clean test esp32-config esp32-build
+.PHONY: help build run clean test esp32-config esp32-build esp32-flash esp32-monitor
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z0-9_-]+:.*##' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*##"}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
@@ -34,3 +34,9 @@ esp32-config: ## Generate esp32/src/config.h from env vars (ESP32_WIFI_SSID, ESP
 
 esp32-build: esp32-config ## Build ESP32 firmware (generates config.h first)
 	cd esp32 && pio run
+
+esp32-flash: esp32-build ## Build and flash ESP32 via USB
+	cd esp32 && pio run -t upload
+
+esp32-monitor: ## Monitor ESP32 serial output
+	cd esp32 && pio device monitor
