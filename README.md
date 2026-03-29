@@ -10,15 +10,21 @@ TP25 --BLE--> ESP32 --HTTP/WiFi--> Go Server --WebSocket--> Browser
 
 ![Therm-Pro Dashboard](docs/img/screenshot.png)
 
+## The ThermoPro TP25
+
+The [ThermoPro TP25](https://buythermopro.com/products/tp25-wireless-leave-in-meat-thermometer) is a wireless Bluetooth leave-in meat thermometer that supports up to 4 probes. It transmits temperature readings over Bluetooth Low Energy (BLE), which makes it possible to bypass the official phone app and read data directly with an ESP32.
+
+![ThermoPro TP25](docs/img/TP25-image.png)
+
 ## Features
 
 - **4 probe support** -- pit temp + 3 meat probes, all tracked independently
-- **Real-time web dashboard** -- mobile-friendly with dark/light theme toggle, per-probe color coding (silver, blue, black, gold), live-updating probe cards and time-series chart
+- **Real-time web dashboard** -- mobile-friendly with dark/light theme toggle, Fahrenheit/Celsius toggle, per-probe color coding (silver, blue, black, gold), live-updating probe cards and time-series chart
 - **Slack alerts** -- notifications when target temps are hit or pit temp drifts out of range
 - **Alert hysteresis** -- alerts fire once, reset after 3 degrees F, rate-limited to avoid spam
 - **OTA firmware updates** -- upload new ESP32 firmware via the server, ESP32 pulls it on boot
 - **Session persistence** -- cook data survives server restarts, manual reset between cooks
-- **Consul service discovery** -- server auto-registers with local Consul agent; ESP32 finds the server via DNS (`tp25.service.consul`)
+- **Consul service discovery** -- server auto-registers with local Consul agent; ESP32 finds the server via DNS (`tp25.service.dc1.consul`)
 - **Graceful shutdown** -- server deregisters from Consul and drains connections on SIGINT/SIGTERM
 
 ## Prerequisites
@@ -93,12 +99,12 @@ export ESP32_WIFI_SSID="your-wifi-name"
 export ESP32_WIFI_PASS="your-wifi-password"
 
 # Optional (these have defaults):
-# export ESP32_SERVER_URL="http://tp25.service.consul:8088"  # default; override if not using Consul DNS
+# export ESP32_SERVER_URL="http://tp25.service.dc1.consul:8088"  # default; override if not using Consul DNS
 # export ESP32_FIRMWARE_VERSION=1
 # export ESP32_LED_PIN=2
 ```
 
-If you have Consul DNS forwarding set up (port 53), the default `SERVER_URL` of `http://tp25.service.consul:8088` will resolve automatically. Otherwise, set `ESP32_SERVER_URL` to the server's LAN IP.
+If you have Consul DNS forwarding set up (port 53), the default `SERVER_URL` of `http://tp25.service.dc1.consul:8088` will resolve automatically. Otherwise, set `ESP32_SERVER_URL` to the server's LAN IP.
 
 Build and flash (inside the flox environment):
 
@@ -155,6 +161,7 @@ All endpoints are available at `http://<server-ip>:8088`.
 |--------|----------|-------------|
 | `GET` | `/` | Web dashboard |
 | `GET` | `/healthz` | Health check (liveness probe for Consul) |
+| `GET` | `/api/docs` | API documentation page |
 | `GET` | `/diagnostics` | System diagnostics and connectivity status |
 | `POST` | `/api/data` | Submit probe readings (ESP32 uses this) |
 | `GET` | `/api/session` | Get current cook session |
@@ -216,6 +223,10 @@ make esp32-build
 4. Upload the binary to the server:
 
 ```bash
+# Using make (uses ESP32_SERVER_URL or defaults to Consul address):
+make esp32-upload
+
+# Or manually with curl:
 curl -X POST http://localhost:8088/api/firmware/upload \
   -F "firmware=@esp32/.pio/build/esp32/firmware.bin" \
   -F "version=2"
@@ -236,6 +247,10 @@ curl -X POST http://localhost:8088/api/firmware/upload \
 The server runs on your local network. The ESP32 and your phone/laptop need to be on the same network (or have routes to the server).
 
 **Accessing from outside your network:** Set up port forwarding on your router to forward an external port to `<server-ip>:8088`. The specifics depend on your router.
+
+## BLE Protocol
+
+The ThermoPro TP25 BLE protocol (UUIDs, handshake, notification frame format, BCD temperature encoding, and sentinel values) is documented in [docs/protocol.md](docs/protocol.md).
 
 ## Project Structure
 
@@ -370,7 +385,7 @@ The top-level `status` is `"ok"` when everything is healthy, or `"degraded"` whe
 
 ### ESP32 can't reach the server
 - Verify WiFi credentials in `config.h`
-- If using Consul DNS, verify `tp25.service.consul` resolves: `dig tp25.service.consul`
+- If using Consul DNS, verify `tp25.service.dc1.consul` resolves: `dig tp25.service.dc1.consul`
 - If not using Consul, check that `ESP32_SERVER_URL` matches the server's LAN IP
 - Ensure the ESP32 and server are on the same network
 - Check serial monitor for connection errors
