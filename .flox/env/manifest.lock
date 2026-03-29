@@ -1,0 +1,404 @@
+{
+  "lockfile-version": 1,
+  "manifest": {
+    "schema-version": "1.11.0",
+    "install": {
+      "gnumake": {
+        "pkg-path": "gnumake"
+      },
+      "go": {
+        "pkg-path": "go"
+      },
+      "platformio": {
+        "pkg-path": "platformio"
+      }
+    },
+    "hook": {},
+    "profile": {},
+    "options": {}
+  },
+  "packages": [
+    {
+      "attr_path": "gnumake",
+      "broken": false,
+      "derivation": "/nix/store/6gi7nfysgzgi13fzz4vf8pv47j58r25f-gnumake-4.4.1.drv",
+      "description": "Tool to control the generation of non-source files from sources",
+      "install_id": "gnumake",
+      "license": "GPL-3.0-or-later",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
+      "name": "gnumake-4.4.1",
+      "pname": "gnumake",
+      "rev": "46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
+      "rev_count": 969196,
+      "rev_date": "2026-03-24T21:09:33Z",
+      "scrape_date": "2026-03-27T03:38:24.482813Z",
+      "stabilities": [
+        "staging",
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "4.4.1",
+      "outputs_to_install": [
+        "man",
+        "out"
+      ],
+      "outputs": {
+        "doc": "/nix/store/hb81l6za1swj09szhxj902bjf9b9cwzc-gnumake-4.4.1-doc",
+        "info": "/nix/store/xynyfhcn9r7jd4iakdr71yb6grabjgf7-gnumake-4.4.1-info",
+        "man": "/nix/store/b2y9y7i57sml44mk7wl4ba8wr8adgavs-gnumake-4.4.1-man",
+        "out": "/nix/store/y40n7jzzy9qydb120kxgbzi55mprbkfm-gnumake-4.4.1"
+      },
+      "system": "aarch64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "gnumake",
+      "broken": false,
+      "derivation": "/nix/store/1if96cdzkwg2hyiabzsjskhvggamkjq1-gnumake-4.4.1.drv",
+      "description": "Tool to control the generation of non-source files from sources",
+      "install_id": "gnumake",
+      "license": "GPL-3.0-or-later",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
+      "name": "gnumake-4.4.1",
+      "pname": "gnumake",
+      "rev": "46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
+      "rev_count": 969196,
+      "rev_date": "2026-03-24T21:09:33Z",
+      "scrape_date": "2026-03-27T04:13:49.085219Z",
+      "stabilities": [
+        "staging",
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "4.4.1",
+      "outputs_to_install": [
+        "man",
+        "out"
+      ],
+      "outputs": {
+        "debug": "/nix/store/px43zlq4bz3zjmc91b6wb6949c8dfxvi-gnumake-4.4.1-debug",
+        "doc": "/nix/store/jhss2k9jczl72jk284kvaj9303yvylwy-gnumake-4.4.1-doc",
+        "info": "/nix/store/1qf6j3yza10lw1iy9w0qm9gliqzfw6xk-gnumake-4.4.1-info",
+        "man": "/nix/store/j4psv3ifmnw0wa8p38rxv5k6vskz4wcs-gnumake-4.4.1-man",
+        "out": "/nix/store/j8hf0sbds6y5il4vb2bz3rx0xivmnsl1-gnumake-4.4.1"
+      },
+      "system": "aarch64-linux",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "gnumake",
+      "broken": false,
+      "derivation": "/nix/store/x36hsg814apahf4jqpjryxpglghilpw4-gnumake-4.4.1.drv",
+      "description": "Tool to control the generation of non-source files from sources",
+      "install_id": "gnumake",
+      "license": "GPL-3.0-or-later",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
+      "name": "gnumake-4.4.1",
+      "pname": "gnumake",
+      "rev": "46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
+      "rev_count": 969196,
+      "rev_date": "2026-03-24T21:09:33Z",
+      "scrape_date": "2026-03-27T04:46:27.389671Z",
+      "stabilities": [
+        "staging",
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "4.4.1",
+      "outputs_to_install": [
+        "man",
+        "out"
+      ],
+      "outputs": {
+        "doc": "/nix/store/2fz6r9nchhyn4i7f9gg5assx9ld2j3mm-gnumake-4.4.1-doc",
+        "info": "/nix/store/h0jgx7zbyyvhcj0lq0la6siv4d3bl9xa-gnumake-4.4.1-info",
+        "man": "/nix/store/r2qnj53aynk05zan3z2j960klx7085dq-gnumake-4.4.1-man",
+        "out": "/nix/store/bijx0sq7avqq7apvqsfb3lmza97lpcxz-gnumake-4.4.1"
+      },
+      "system": "x86_64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "gnumake",
+      "broken": false,
+      "derivation": "/nix/store/rdw0vaa7xc9wzms9i0npw1a1w378y6n9-gnumake-4.4.1.drv",
+      "description": "Tool to control the generation of non-source files from sources",
+      "install_id": "gnumake",
+      "license": "GPL-3.0-or-later",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
+      "name": "gnumake-4.4.1",
+      "pname": "gnumake",
+      "rev": "46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
+      "rev_count": 969196,
+      "rev_date": "2026-03-24T21:09:33Z",
+      "scrape_date": "2026-03-27T05:24:57.132587Z",
+      "stabilities": [
+        "staging",
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "4.4.1",
+      "outputs_to_install": [
+        "man",
+        "out"
+      ],
+      "outputs": {
+        "debug": "/nix/store/bzap48lhfqcjczhj2ry3gwqjh9klkgxf-gnumake-4.4.1-debug",
+        "doc": "/nix/store/0jx03f9vis4zp8b7s2ybp9anlgk68ihy-gnumake-4.4.1-doc",
+        "info": "/nix/store/pbs6fhcn3gjr6x9fzdlk0kwqg1m5gk5g-gnumake-4.4.1-info",
+        "man": "/nix/store/p75qwzzsxdhpnhdjx4fbjy20p9qxp326-gnumake-4.4.1-man",
+        "out": "/nix/store/45npani18v2m7sbkrzrv2xyilyghrny9-gnumake-4.4.1"
+      },
+      "system": "x86_64-linux",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "go",
+      "broken": false,
+      "derivation": "/nix/store/jj5lr2n85rl99d40dcgvv8kh4p37i47d-go-1.26.1.drv",
+      "description": "Go Programming language",
+      "install_id": "go",
+      "license": "BSD-3-Clause",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
+      "name": "go-1.26.1",
+      "pname": "go",
+      "rev": "46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
+      "rev_count": 969196,
+      "rev_date": "2026-03-24T21:09:33Z",
+      "scrape_date": "2026-03-27T03:38:24.492547Z",
+      "stabilities": [
+        "staging",
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "1.26.1",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/kh43nhaz1qcpwws2xq805lrmwpmn9i3k-go-1.26.1"
+      },
+      "system": "aarch64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "go",
+      "broken": false,
+      "derivation": "/nix/store/bgblqd7l0v7x7s504csalw9b5vwf4czc-go-1.26.1.drv",
+      "description": "Go Programming language",
+      "install_id": "go",
+      "license": "BSD-3-Clause",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
+      "name": "go-1.26.1",
+      "pname": "go",
+      "rev": "46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
+      "rev_count": 969196,
+      "rev_date": "2026-03-24T21:09:33Z",
+      "scrape_date": "2026-03-27T04:13:49.101359Z",
+      "stabilities": [
+        "staging",
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "1.26.1",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/rz1pqbm5z3zfby250i0djfmfzzj7khg9-go-1.26.1"
+      },
+      "system": "aarch64-linux",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "go",
+      "broken": false,
+      "derivation": "/nix/store/pcwra0rv1n0pq3r6sjlc6sx6a0bv499x-go-1.26.1.drv",
+      "description": "Go Programming language",
+      "install_id": "go",
+      "license": "BSD-3-Clause",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
+      "name": "go-1.26.1",
+      "pname": "go",
+      "rev": "46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
+      "rev_count": 969196,
+      "rev_date": "2026-03-24T21:09:33Z",
+      "scrape_date": "2026-03-27T04:46:27.398605Z",
+      "stabilities": [
+        "staging",
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "1.26.1",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/yv6jj27racylbfjw6a1cdr91ndxbgyf6-go-1.26.1"
+      },
+      "system": "x86_64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "go",
+      "broken": false,
+      "derivation": "/nix/store/f7rh1lw0shd5471j9y6wpvc2j43czglz-go-1.26.1.drv",
+      "description": "Go Programming language",
+      "install_id": "go",
+      "license": "BSD-3-Clause",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
+      "name": "go-1.26.1",
+      "pname": "go",
+      "rev": "46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
+      "rev_count": 969196,
+      "rev_date": "2026-03-24T21:09:33Z",
+      "scrape_date": "2026-03-27T05:24:57.148265Z",
+      "stabilities": [
+        "staging",
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "1.26.1",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/ckcq2mj8zk0drhaaacy6mp9d924hnr4m-go-1.26.1"
+      },
+      "system": "x86_64-linux",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "platformio",
+      "broken": false,
+      "derivation": "/nix/store/qb6ix00dgn78dvr7x8dhhp87311h1dv6-platformio-6.1.19.drv",
+      "description": "Open source ecosystem for IoT development",
+      "install_id": "platformio",
+      "license": "Apache-2.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
+      "name": "platformio-6.1.19",
+      "pname": "platformio",
+      "rev": "46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
+      "rev_count": 969196,
+      "rev_date": "2026-03-24T21:09:33Z",
+      "scrape_date": "2026-03-27T03:39:03.406008Z",
+      "stabilities": [
+        "staging",
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "6.1.19",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "dist": "/nix/store/px203ydpfv7a6rq7dbcfx7q2lqbhs9ly-platformio-6.1.19-dist",
+        "out": "/nix/store/k70z9fp3q14x823pvqhr3n2iar49fqb4-platformio-6.1.19",
+        "udev": "/nix/store/01j7msypp3nksa4psrfgwzbiydc9x42i-platformio-6.1.19-udev"
+      },
+      "system": "aarch64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "platformio",
+      "broken": false,
+      "derivation": "/nix/store/bpd50q9yydhgbnrj7v5r62c34xxizqwi-platformio-6.1.19.drv",
+      "description": "Open source ecosystem for IoT development",
+      "install_id": "platformio",
+      "license": "Apache-2.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
+      "name": "platformio-6.1.19",
+      "pname": "platformio",
+      "rev": "46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
+      "rev_count": 969196,
+      "rev_date": "2026-03-24T21:09:33Z",
+      "scrape_date": "2026-03-27T04:14:46.653327Z",
+      "stabilities": [
+        "staging",
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "6.1.19",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/ysg9jjq0am0n3g1b6mqjza3ic67ap6pp-platformio-6.1.19"
+      },
+      "system": "aarch64-linux",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "platformio",
+      "broken": false,
+      "derivation": "/nix/store/4vzjb6r6kw1kwqa1iq3y83m13fr21hv6-platformio-6.1.19.drv",
+      "description": "Open source ecosystem for IoT development",
+      "install_id": "platformio",
+      "license": "Apache-2.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
+      "name": "platformio-6.1.19",
+      "pname": "platformio",
+      "rev": "46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
+      "rev_count": 969196,
+      "rev_date": "2026-03-24T21:09:33Z",
+      "scrape_date": "2026-03-27T04:47:06.381132Z",
+      "stabilities": [
+        "staging",
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "6.1.19",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "dist": "/nix/store/nvx10napsqnw4fzm6m322q0vpyi7mi1a-platformio-6.1.19-dist",
+        "out": "/nix/store/c0v8j56h83k9jbms0k7nmlbvbxavs6nl-platformio-6.1.19",
+        "udev": "/nix/store/bx84yn37c7xhh4zlqfvgv82jbd8xhz9h-platformio-6.1.19-udev"
+      },
+      "system": "x86_64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "platformio",
+      "broken": false,
+      "derivation": "/nix/store/7mvicnjdn41s8mqvaiis26g3h8kpq8nm-platformio-6.1.19.drv",
+      "description": "Open source ecosystem for IoT development",
+      "install_id": "platformio",
+      "license": "Apache-2.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
+      "name": "platformio-6.1.19",
+      "pname": "platformio",
+      "rev": "46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
+      "rev_count": 969196,
+      "rev_date": "2026-03-24T21:09:33Z",
+      "scrape_date": "2026-03-27T05:25:57.106540Z",
+      "stabilities": [
+        "staging",
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "6.1.19",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/ybhqnv2wa0dpqwqdad2cyd11hn8xcbvn-platformio-6.1.19"
+      },
+      "system": "x86_64-linux",
+      "group": "toplevel",
+      "priority": 5
+    }
+  ]
+}
