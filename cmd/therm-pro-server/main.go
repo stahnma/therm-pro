@@ -2,12 +2,17 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"path/filepath"
+	"strconv"
+	"syscall"
 
 	"github.com/stahnma/therm-pro/internal/api"
+	"github.com/stahnma/therm-pro/internal/consul"
 )
 
 func main() {
@@ -26,6 +31,27 @@ func main() {
 	srv := api.NewServer(":"+port, slackWebhook, sessionPath, firmwareDir)
 	mux := srv.Routes()
 
-	log.Printf("therm-pro-server listening on :%s", port)
-	log.Fatal(http.ListenAndServe(":"+port, mux))
+	// Register with local Consul agent
+	portNum, _ := strconv.Atoi(port)
+	if err := consul.Register(portNum); err != nil {
+		log.Printf("WARNING: consul registration failed: %v", err)
+	}
+
+	httpSrv := &http.Server{Addr: ":" + port, Handler: mux}
+
+	go func() {
+		log.Printf("therm-pro-server listening on :%s", port)
+		if err := httpSrv.ListenAndServe(); err != http.ErrServerClosed {
+			log.Fatalf("server error: %v", err)
+		}
+	}()
+
+	// Wait for shutdown signal
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+
+	log.Println("shutting down...")
+	consul.Deregister()
+	httpSrv.Shutdown(context.Background())
 }
