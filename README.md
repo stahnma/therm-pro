@@ -11,11 +11,13 @@ TP25 --BLE--> ESP32 --HTTP/WiFi--> Go Server --WebSocket--> Browser
 ## Features
 
 - **4 probe support** -- pit temp + 3 meat probes, all tracked independently
-- **Real-time web dashboard** -- mobile-friendly dark theme, live-updating probe cards and time-series chart
+- **Real-time web dashboard** -- mobile-friendly with dark/light theme toggle, per-probe color coding (silver, blue, black, gold), live-updating probe cards and time-series chart
 - **Slack alerts** -- notifications when target temps are hit or pit temp drifts out of range
 - **Alert hysteresis** -- alerts fire once, reset after 3 degrees F, rate-limited to avoid spam
 - **OTA firmware updates** -- upload new ESP32 firmware via the server, ESP32 pulls it on boot
 - **Session persistence** -- cook data survives server restarts, manual reset between cooks
+- **Consul service discovery** -- server auto-registers with local Consul agent; ESP32 finds the server via DNS (`tp25.service.consul`)
+- **Graceful shutdown** -- server deregisters from Consul and drains connections on SIGINT/SIGTERM
 
 ## Prerequisites
 
@@ -72,6 +74,8 @@ The server stores session data in `~/.therm-pro/session.json`.
 | `PORT` | `8080` | HTTP server port |
 | `THERM_PRO_SLACK_WEBHOOK` | _(empty)_ | Slack incoming webhook URL for alerts |
 
+The server automatically registers itself as service `tp25` with the local Consul agent (`localhost:8500`) on startup, using the auto-detected LAN IP. If Consul isn't running, the server logs a warning and operates normally.
+
 Example with Slack:
 
 ```bash
@@ -85,22 +89,14 @@ Configuration is driven by environment variables so that secrets are never commi
 ```bash
 export ESP32_WIFI_SSID="your-wifi-name"
 export ESP32_WIFI_PASS="your-wifi-password"
-export ESP32_SERVER_URL="http://192.168.1.100:8080"
 
 # Optional (these have defaults):
+# export ESP32_SERVER_URL="http://tp25.service.consul:8080"  # default; override if not using Consul DNS
 # export ESP32_FIRMWARE_VERSION=1
 # export ESP32_LED_PIN=2
 ```
 
-**Finding your server's IP:**
-
-```bash
-# macOS
-ipconfig getifaddr en0
-
-# Linux
-hostname -I | awk '{print $1}'
-```
+If you have Consul DNS forwarding set up (port 53), the default `SERVER_URL` of `http://tp25.service.consul:8080` will resolve automatically. Otherwise, set `ESP32_SERVER_URL` to the server's LAN IP.
 
 Build and flash (inside the flox environment):
 
@@ -252,6 +248,7 @@ therm-pro/
   cmd/therm-pro-server/          Go server entry point
   internal/
     api/                         HTTP handlers, WebSocket, routes
+    consul/                      Consul service registration
     cook/                        Session data model, alerts, persistence
     firmware/                    OTA firmware management
     slack/                       Slack webhook client
@@ -333,7 +330,8 @@ Alert messages include the alert details and current temps for all 4 probes.
 
 ### ESP32 can't reach the server
 - Verify WiFi credentials in `config.h`
-- Check that the server IP is correct and the server is running
+- If using Consul DNS, verify `tp25.service.consul` resolves: `dig tp25.service.consul`
+- If not using Consul, check that `ESP32_SERVER_URL` matches the server's LAN IP
 - Ensure the ESP32 and server are on the same network
 - Check serial monitor for connection errors
 
