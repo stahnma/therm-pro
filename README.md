@@ -8,6 +8,8 @@ TP25 --BLE--> ESP32 --HTTP/WiFi--> Go Server --WebSocket--> Browser
                                        +--Webhook--> Slack
 ```
 
+![Therm-Pro Dashboard](docs/img/screenshot.png)
+
 ## Features
 
 - **4 probe support** -- pit temp + 3 meat probes, all tracked independently
