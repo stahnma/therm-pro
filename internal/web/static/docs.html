@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Therm-Pro API</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #1a1a2e;
+      color: #eee;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.25rem;
+      background: #0f0f23;
+      border-bottom: 1px solid #2a2a4a;
+    }
+    header h1 { font-size: 1.4rem; font-weight: 700; }
+    header a { color: #2196f3; text-decoration: none; font-weight: 600; font-size: 0.875rem; }
+    header a:hover { text-decoration: underline; }
+    main { max-width: 800px; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; }
+    h2 { font-size: 1.1rem; margin-top: 2rem; margin-bottom: 0.75rem; color: #2196f3; }
+    h2:first-of-type { margin-top: 1rem; }
+    .endpoint {
+      background: #16213e;
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 0.75rem;
+    }
+    .endpoint-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+    .method {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-family: monospace;
+      min-width: 3.5rem;
+      text-align: center;
+    }
+    .method-get { background: #4caf50; color: #fff; }
+    .method-post { background: #2196f3; color: #fff; }
+    .path { font-family: monospace; font-size: 0.95rem; color: #fff; }
+    .desc { font-size: 0.85rem; color: #aaa; line-height: 1.5; }
+    pre {
+      background: #0f0f23;
+      border-radius: 6px;
+      padding: 0.75rem 1rem;
+      margin-top: 0.5rem;
+      font-size: 0.8rem;
+      color: #ccc;
+      overflow-x: auto;
+      line-height: 1.5;
+    }
+    code { font-family: "SF Mono", "Fira Code", monospace; }
+    .note {
+      font-size: 0.8rem;
+      color: #888;
+      margin-top: 0.35rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Therm-Pro API</h1>
+    <a href="/">&larr; Dashboard</a>
+  </header>
+
+  <main>
+    <h2>Data</h2>
+
+    <div class="endpoint">
+      <div class="endpoint-header">
+        <span class="method method-post">POST</span>
+        <span class="path">/api/data</span>
+      </div>
+      <div class="desc">Submit probe temperature readings. The ESP32 calls this endpoint.</div>
+      <pre><code>{
+  "probes": [
+    {"id": 1, "temp_f": 250.0},
+    {"id": 2, "temp_f": 165.3},
+    {"id": 3, "temp_f": 180.1},
+    {"id": 4, "temp_f": -999.0}
+  ],
+  "battery": 85
+}</code></pre>
+      <div class="note">A temp_f of -999.0 indicates a disconnected probe.</div>
+    </div>
+
+    <h2>Session</h2>
+
+    <div class="endpoint">
+      <div class="endpoint-header">
+        <span class="method method-get">GET</span>
+        <span class="path">/api/session</span>
+      </div>
+      <div class="desc">Returns the current cook session with all probes, history, and alert configuration.</div>
+      <pre><code>{
+  "probes": [
+    {"id": 1, "label": "Pit", "current_temp": 250.0, "connected": true, "alert": {"low_temp": 225, "high_temp": 275}},
+    {"id": 2, "label": "Brisket", "current_temp": 165.3, "connected": true, "alert": {"target_temp": 203}}
+  ],
+  "history": [{"timestamp": "...", "temps": [250, 165, 180, 190], "battery": 85}],
+  "started": "2026-03-28T12:00:00Z"
+}</code></pre>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header">
+        <span class="method method-post">POST</span>
+        <span class="path">/api/session/reset</span>
+      </div>
+      <div class="desc">Clear all temperature history. Probe labels and alert configs are preserved. Call before each cook.</div>
+    </div>
+
+    <h2>Alerts</h2>
+
+    <div class="endpoint">
+      <div class="endpoint-header">
+        <span class="method method-post">POST</span>
+        <span class="path">/api/alerts</span>
+      </div>
+      <div class="desc">Set alert thresholds for a probe. All fields in the alert object are optional&mdash;omit or set to null to clear.</div>
+      <pre><code>// Target temp (meat probe)
+{"probe_id": 2, "alert": {"target_temp": 203.0}}
+
+// Range alert (pit probe)
+{"probe_id": 1, "alert": {"low_temp": 225.0, "high_temp": 275.0}}</code></pre>
+      <div class="note">Alerts fire once, reset after 3&deg;F hysteresis, rate-limited to 60s minimum.</div>
+    </div>
+
+    <h2>WebSocket</h2>
+
+    <div class="endpoint">
+      <div class="endpoint-header">
+        <span class="method method-get">GET</span>
+        <span class="path">/api/ws</span>
+      </div>
+      <div class="desc">WebSocket endpoint for live temperature updates. Server pushes a JSON reading on each new data point.</div>
+      <pre><code>// Each message:
+{"timestamp": "...", "temps": [250, 165, 180, 190], "battery": 85}</code></pre>
+    </div>
+
+    <h2>Firmware OTA</h2>
+
+    <div class="endpoint">
+      <div class="endpoint-header">
+        <span class="method method-get">GET</span>
+        <span class="path">/api/firmware/latest</span>
+      </div>
+      <div class="desc">Returns the latest firmware version info. Returns 404 if no firmware has been uploaded.</div>
+      <pre><code>{"version": 2, "download_url": "/api/firmware/download"}</code></pre>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header">
+        <span class="method method-get">GET</span>
+        <span class="path">/api/firmware/download</span>
+      </div>
+      <div class="desc">Download the latest firmware binary (.bin file).</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header">
+        <span class="method method-post">POST</span>
+        <span class="path">/api/firmware/upload</span>
+      </div>
+      <div class="desc">Upload a new firmware binary. Multipart form with <code>firmware</code> (file) and <code>version</code> (integer) fields.</div>
+      <pre><code>curl -X POST http://localhost:8080/api/firmware/upload \
+  -F "firmware=@esp32/.pio/build/esp32/firmware.bin" \
+  -F "version=2"</code></pre>
+    </div>
+
+    <h2>Health</h2>
+
+    <div class="endpoint">
+      <div class="endpoint-header">
+        <span class="method method-get">GET</span>
+        <span class="path">/healthz</span>
+      </div>
+      <div class="desc">Returns "ok" if the server is running.</div>
+    </div>
+  </main>
+</body>
+</html>
