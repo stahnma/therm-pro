@@ -1,0 +1,5 @@
+bin/
+esp32/.pio/
+esp32/.vscode/
+*.bin
+.DS_Store
