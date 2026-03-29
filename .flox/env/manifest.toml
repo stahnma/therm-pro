@@ -10,6 +10,7 @@ schema-version = "1.11.0"
 gnumake.pkg-path = "gnumake"
 go.pkg-path = "go"
 platformio.pkg-path = "platformio"
+espflash.pkg-path = "espflash"
 # gum.pkg-path = "gum"
 # gum.version = "^0.14.5"
 

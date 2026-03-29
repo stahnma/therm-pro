@@ -3,6 +3,9 @@
   "manifest": {
     "schema-version": "1.11.0",
     "install": {
+      "espflash": {
+        "pkg-path": "espflash"
+      },
       "gnumake": {
         "pkg-path": "gnumake"
       },
@@ -18,6 +21,126 @@
     "options": {}
   },
   "packages": [
+    {
+      "attr_path": "espflash",
+      "broken": false,
+      "derivation": "/nix/store/gwrv0gf95h40aq4n72kjwz5lwjsjp29k-espflash-4.3.0.drv",
+      "description": "Serial flasher utility for Espressif SoCs and modules based on esptool.py",
+      "install_id": "espflash",
+      "license": "[ MIT, Apache-2.0 ]",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
+      "name": "espflash-4.3.0",
+      "pname": "espflash",
+      "rev": "46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
+      "rev_count": 969196,
+      "rev_date": "2026-03-24T21:09:33Z",
+      "scrape_date": "2026-03-27T03:38:23.941273Z",
+      "stabilities": [
+        "staging",
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "4.3.0",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/m1584h4x3k66p9pw3pzdy1dgph23njga-espflash-4.3.0"
+      },
+      "system": "aarch64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "espflash",
+      "broken": false,
+      "derivation": "/nix/store/hznmsj0jdm9qfp28g9xw3jdbdx667jvn-espflash-4.3.0.drv",
+      "description": "Serial flasher utility for Espressif SoCs and modules based on esptool.py",
+      "install_id": "espflash",
+      "license": "[ MIT, Apache-2.0 ]",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
+      "name": "espflash-4.3.0",
+      "pname": "espflash",
+      "rev": "46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
+      "rev_count": 969196,
+      "rev_date": "2026-03-24T21:09:33Z",
+      "scrape_date": "2026-03-27T04:13:47.791243Z",
+      "stabilities": [
+        "staging",
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "4.3.0",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/5dma8gizgk6c4mwv50p7kkzb62g3lc2a-espflash-4.3.0"
+      },
+      "system": "aarch64-linux",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "espflash",
+      "broken": false,
+      "derivation": "/nix/store/0pyp77scyd1brvncrl820s5igi0qjy17-espflash-4.3.0.drv",
+      "description": "Serial flasher utility for Espressif SoCs and modules based on esptool.py",
+      "install_id": "espflash",
+      "license": "[ MIT, Apache-2.0 ]",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
+      "name": "espflash-4.3.0",
+      "pname": "espflash",
+      "rev": "46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
+      "rev_count": 969196,
+      "rev_date": "2026-03-24T21:09:33Z",
+      "scrape_date": "2026-03-27T04:46:26.863159Z",
+      "stabilities": [
+        "staging",
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "4.3.0",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/ci02azvkz14xzdd7903dwawpq5lp68zv-espflash-4.3.0"
+      },
+      "system": "x86_64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "espflash",
+      "broken": false,
+      "derivation": "/nix/store/3lx3h0akay95kzm7zyslyw3cfam4xzcb-espflash-4.3.0.drv",
+      "description": "Serial flasher utility for Espressif SoCs and modules based on esptool.py",
+      "install_id": "espflash",
+      "license": "[ MIT, Apache-2.0 ]",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
+      "name": "espflash-4.3.0",
+      "pname": "espflash",
+      "rev": "46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
+      "rev_count": 969196,
+      "rev_date": "2026-03-24T21:09:33Z",
+      "scrape_date": "2026-03-27T05:24:55.732093Z",
+      "stabilities": [
+        "staging",
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "4.3.0",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/k8ra2hj372dqsn7l899ck3x6ivsy8g43-espflash-4.3.0"
+      },
+      "system": "x86_64-linux",
+      "group": "toplevel",
+      "priority": 5
+    },
     {
       "attr_path": "gnumake",
       "broken": false,
