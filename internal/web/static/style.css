@@ -1,0 +1,218 @@
+/* ── Reset & Base ─────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: #1a1a2e;
+  color: #eee;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Header ──────────────────────────────────── */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  background: #0f0f23;
+  border-bottom: 1px solid #2a2a4a;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+header h1 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* ── Buttons ─────────────────────────────────── */
+.btn {
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.btn:active { transform: scale(0.96); }
+
+.btn-unit {
+  background: #2a2a4a;
+  color: #ccc;
+  min-width: 2.75rem;
+}
+.btn-unit:hover { background: #3a3a5a; }
+
+.btn-reset {
+  background: #c0392b;
+  color: #fff;
+}
+.btn-reset:hover { background: #e74c3c; }
+
+.btn-cancel {
+  background: #2a2a4a;
+  color: #ccc;
+}
+.btn-cancel:hover { background: #3a3a5a; }
+
+.btn-save {
+  background: #2196f3;
+  color: #fff;
+}
+.btn-save:hover { background: #42a5f5; }
+
+/* ── Reconnect Banner ────────────────────────── */
+.banner {
+  background: #ff9800;
+  color: #1a1a2e;
+  text-align: center;
+  padding: 0.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+.hidden { display: none !important; }
+
+/* ── Main ────────────────────────────────────── */
+main {
+  padding: 1rem 1.25rem 2rem;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+/* ── Probe Grid ──────────────────────────────── */
+.probe-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 600px) {
+  .probe-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Probe Card ──────────────────────────────── */
+.probe-card {
+  background: #16213e;
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  border-left: 4px solid #4caf50;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.2s;
+  user-select: none;
+}
+
+.probe-card:hover { background: #1a2744; }
+
+.probe-card.status-normal  { border-left-color: #4caf50; }
+.probe-card.status-warning { border-left-color: #ff9800; }
+.probe-card.status-alert   { border-left-color: #f44336; }
+.probe-card.status-disconnected {
+  border-left-color: #555;
+  opacity: 0.55;
+}
+
+.probe-label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #999;
+  margin-bottom: 0.25rem;
+}
+
+.probe-temp {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.probe-target {
+  font-size: 0.8rem;
+  color: #888;
+  margin-top: 0.35rem;
+}
+
+/* ── Chart ───────────────────────────────────── */
+#chart-container {
+  background: #16213e;
+  border-radius: 10px;
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+/* uPlot overrides for dark theme */
+.u-title { color: #ccc !important; }
+.u-legend { color: #aaa !important; font-size: 0.8rem !important; }
+.u-legend .u-series td { padding: 2px 6px !important; }
+
+/* ── Modal ───────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 1rem;
+}
+
+.modal {
+  background: #16213e;
+  border-radius: 12px;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.modal h2 {
+  font-size: 1.15rem;
+  margin-bottom: 1rem;
+}
+
+.modal label {
+  display: block;
+  font-size: 0.8rem;
+  color: #999;
+  margin-bottom: 0.25rem;
+  margin-top: 0.75rem;
+}
+
+.modal label:first-of-type { margin-top: 0; }
+
+.modal input {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #2a2a4a;
+  border-radius: 6px;
+  background: #1a1a2e;
+  color: #eee;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.modal input:focus { border-color: #2196f3; }
+
+.modal-buttons {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.modal-buttons .btn {
+  flex: 1;
+  padding: 0.65rem;
+}

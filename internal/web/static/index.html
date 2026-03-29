@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Therm-Pro</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uplot@1.6.31/dist/uPlot.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/uplot@1.6.31/dist/uPlot.iife.min.js"></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header>
+    <h1>Therm-Pro</h1>
+    <div class="header-actions">
+      <button id="toggle-unit" class="btn btn-unit" title="Toggle Fahrenheit / Celsius">&#176;F</button>
+      <button id="reset-cook" class="btn btn-reset">Reset Cook</button>
+    </div>
+  </header>
+
+  <div id="reconnect-banner" class="banner hidden">Reconnecting&hellip;</div>
+
+  <main>
+    <div id="probe-grid" class="probe-grid"></div>
+    <div id="chart-container"></div>
+  </main>
+
+  <!-- Edit Modal -->
+  <div id="modal-overlay" class="modal-overlay hidden">
+    <div class="modal">
+      <h2 id="modal-title">Edit Probe</h2>
+      <form id="modal-form" autocomplete="off">
+        <input type="hidden" id="modal-probe-id">
+        <label for="modal-label">Label</label>
+        <input type="text" id="modal-label" maxlength="30">
+
+        <label for="modal-target">Target Temp</label>
+        <input type="number" id="modal-target" placeholder="optional" step="any">
+
+        <label for="modal-high">High Temp Alert</label>
+        <input type="number" id="modal-high" placeholder="optional" step="any">
+
+        <label for="modal-low">Low Temp Alert</label>
+        <input type="number" id="modal-low" placeholder="optional" step="any">
+
+        <div class="modal-buttons">
+          <button type="button" id="modal-cancel" class="btn btn-cancel">Cancel</button>
+          <button type="submit" class="btn btn-save">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

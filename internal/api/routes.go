@@ -1,7 +1,12 @@
 // internal/api/routes.go
 package api
 
-import "net/http"
+import (
+	"io/fs"
+	"net/http"
+
+	"github.com/stahnma/therm-pro/internal/web"
+)
 
 func (s *Server) Routes() *http.ServeMux {
 	mux := http.NewServeMux()
@@ -17,5 +22,10 @@ func (s *Server) Routes() *http.ServeMux {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("ok\n"))
 	})
+
+	// Serve embedded web dashboard
+	staticFS, _ := fs.Sub(web.StaticFiles, "static")
+	mux.Handle("GET /", http.FileServer(http.FS(staticFS)))
+
 	return mux
 }
