@@ -19,19 +19,33 @@ TP25 --BLE--> ESP32 --HTTP/WiFi--> Go Server --WebSocket--> Browser
 
 ## Prerequisites
 
-- **Go 1.21+** -- for building the server
-- **PlatformIO** -- for building and flashing the ESP32 firmware
+- **[Flox](https://flox.dev)** -- manages all development dependencies (Go, PlatformIO, GNU Make)
 - **ESP32 dev board** -- any ESP32 with WiFi and BLE (e.g., ESP32-DevKitC)
 - **ThermPro TP25** -- the Bluetooth BBQ thermometer
 
-### Installing PlatformIO
+## Setting Up the Development Environment
+
+This project uses [Flox](https://flox.dev) for dependency management. Flox provides Go, PlatformIO, and GNU Make in an isolated environment.
 
 ```bash
-# Via pip
-pip install platformio
+# Install Flox if you don't have it (https://flox.dev/docs/install)
+# macOS:
+brew install flox
 
-# Or via Homebrew (macOS)
-brew install platformio
+# Clone the repo
+git clone https://github.com/stahnma/therm-pro.git
+cd therm-pro
+
+# Activate the Flox environment (installs Go, PlatformIO, GNU Make)
+flox activate
+```
+
+Once inside the Flox environment, all tools are available. You can verify with:
+
+```bash
+go version       # Go compiler
+pio --version    # PlatformIO
+make --version   # GNU Make
 ```
 
 ## Quick Start
@@ -39,11 +53,9 @@ brew install platformio
 ### 1. Build and Run the Server
 
 ```bash
-# Clone the repo
-git clone https://github.com/stahnma/therm-pro.git
-cd therm-pro
+# Inside flox activate shell:
 
-# Build
+# Build the server binary
 make build
 
 # Run (listens on port 8080 by default)
@@ -77,21 +89,6 @@ Edit `esp32/src/config.h` with your network details:
 #define LED_PIN 2  // onboard LED pin (2 for most ESP32 dev boards)
 ```
 
-Build and flash:
-
-```bash
-cd esp32
-
-# Build only (verify it compiles)
-pio run
-
-# Build and flash via USB
-pio run -t upload
-
-# Monitor serial output (optional, useful for debugging)
-pio device monitor
-```
-
 **Finding your server's IP:**
 
 ```bash
@@ -101,6 +98,29 @@ ipconfig getifaddr en0
 # Linux
 hostname -I | awk '{print $1}'
 ```
+
+Build and flash (inside the flox environment):
+
+```bash
+cd esp32
+
+# Build only (verify it compiles)
+pio run
+
+# Build and flash via USB (connect ESP32 first)
+pio run -t upload
+
+# Monitor serial output (useful for verifying WiFi/BLE connection)
+pio device monitor
+```
+
+**Note:** PlatformIO under Flox may require disabling the virtualenv check on first run:
+
+```bash
+PIP_REQUIRE_VIRTUALENV=false pio run
+```
+
+Subsequent runs should work without this. This is only needed the first time PlatformIO installs its ESP32 toolchain dependencies.
 
 ### 3. Open the Dashboard
 
@@ -168,12 +188,14 @@ A `temp_f` of `-999.0` indicates a disconnected probe.
 ### Example: Set Alert
 
 ```bash
+# Target temperature alert (meat probe)
 curl -X POST http://localhost:8080/api/alerts \
   -H 'Content-Type: application/json' \
   -d '{"probe_id": 2, "alert": {"target_temp": 203.0}}'
 ```
 
 ```bash
+# Range alert (pit probe)
 curl -X POST http://localhost:8080/api/alerts \
   -H 'Content-Type: application/json' \
   -d '{"probe_id": 1, "alert": {"low_temp": 225.0, "high_temp": 275.0}}'
@@ -185,7 +207,12 @@ After the initial USB flash, you can update the ESP32 over WiFi:
 
 1. Make your code changes in `esp32/src/`
 2. Increment `FIRMWARE_VERSION` in `esp32/src/config.h`
-3. Build: `cd esp32 && pio run`
+3. Build the firmware:
+
+```bash
+cd esp32 && pio run
+```
+
 4. Upload the binary to the server:
 
 ```bash
@@ -214,25 +241,40 @@ The server runs on your local network. The ESP32 and your phone/laptop need to b
 
 ```
 therm-pro/
-  cmd/therm-pro-server/     Go server entry point
+  .flox/                         Flox environment (Go, PlatformIO, Make)
+  cmd/therm-pro-server/          Go server entry point
   internal/
-    api/                     HTTP handlers, WebSocket, routes
-    cook/                    Session data model, alerts, persistence
-    firmware/                OTA firmware management
-    slack/                   Slack webhook client
-    web/static/              Embedded dashboard (HTML/CSS/JS)
+    api/                         HTTP handlers, WebSocket, routes
+    cook/                        Session data model, alerts, persistence
+    firmware/                    OTA firmware management
+    slack/                       Slack webhook client
+    web/static/                  Embedded dashboard (HTML/CSS/JS)
   esp32/
-    src/                     ESP32 firmware (Arduino/C++)
-    platformio.ini           PlatformIO build config
+    src/                         ESP32 firmware (Arduino/C++)
+    platformio.ini               PlatformIO build config
+  docs/plans/                    Design and implementation docs
 ```
 
 ## Running Tests
 
 ```bash
+# Inside flox activate shell:
 go test ./...
 ```
 
 ## Development
+
+### Building Without Flox
+
+If you prefer not to use Flox, install the dependencies manually:
+
+- [Go 1.21+](https://go.dev/dl/)
+- [PlatformIO Core](https://docs.platformio.org/en/latest/core/installation.html)
+- GNU Make
+
+Then use the same `make build`, `pio run`, etc. commands.
+
+### Simulating the ESP32
 
 You can develop and test the server without an ESP32 by simulating probe data with curl:
 
@@ -253,6 +295,49 @@ while true; do
   sleep 3
 done
 ```
+
+### Cross-Compiling the Server
+
+The Go server can be cross-compiled for Linux (e.g., to run on a Raspberry Pi):
+
+```bash
+GOOS=linux GOARCH=arm64 make build    # ARM64 (Raspberry Pi 4, etc.)
+GOOS=linux GOARCH=amd64 make build    # x86_64
+```
+
+Copy `bin/therm-pro-server` to the target machine and run it.
+
+## Slack Webhook Setup
+
+1. Go to [Slack API: Incoming Webhooks](https://api.slack.com/messaging/webhooks)
+2. Create a new app (or use an existing one)
+3. Enable Incoming Webhooks
+4. Add a new webhook to a channel of your choice
+5. Copy the webhook URL and set it as `THERM_PRO_SLACK_WEBHOOK`
+
+Alert messages include the alert details and current temps for all 4 probes.
+
+## Troubleshooting
+
+### ESP32 won't connect to TP25
+- Make sure the TP25 is powered on and not connected to another device (phone app, etc.)
+- The TP25 advertises as "Thermopro" -- check serial monitor output for scan results
+- Try power cycling both the TP25 and ESP32
+
+### ESP32 can't reach the server
+- Verify WiFi credentials in `config.h`
+- Check that the server IP is correct and the server is running
+- Ensure the ESP32 and server are on the same network
+- Check serial monitor for connection errors
+
+### PlatformIO build fails under Flox
+- Run with `PIP_REQUIRE_VIRTUALENV=false pio run` on the first build
+- If the ESP32 toolchain fails to install, try `pio pkg install` separately first
+
+### Dashboard not updating
+- Check that the ESP32 is connected (solid LED)
+- Open browser dev tools and check the WebSocket connection to `/api/ws`
+- Verify data is arriving: `curl http://localhost:8080/api/session`
 
 ## License
 
