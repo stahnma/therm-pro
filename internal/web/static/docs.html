@@ -176,7 +176,7 @@
         <span class="path">/api/firmware/upload</span>
       </div>
       <div class="desc">Upload a new firmware binary. Multipart form with <code>firmware</code> (file) and <code>version</code> (integer) fields.</div>
-      <pre><code>curl -X POST http://localhost:8080/api/firmware/upload \
+      <pre><code>curl -X POST http://localhost:8088/api/firmware/upload \
   -F "firmware=@esp32/.pio/build/esp32/firmware.bin" \
   -F "version=2"</code></pre>
     </div>

@@ -18,7 +18,7 @@ import (
 func main() {
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8080"
+		port = "8088"
 	}
 
 	slackWebhook := os.Getenv("THERM_PRO_SLACK_WEBHOOK")

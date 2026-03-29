@@ -63,7 +63,7 @@ make --version     # GNU Make
 # Build the server binary
 make build
 
-# Run (listens on port 8080 by default)
+# Run (listens on port 8088 by default)
 ./bin/therm-pro-server
 ```
 
@@ -73,7 +73,7 @@ The server stores session data in `~/.therm-pro/session.json`.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `PORT` | `8080` | HTTP server port |
+| `PORT` | `8088` | HTTP server port |
 | `THERM_PRO_SLACK_WEBHOOK` | _(empty)_ | Slack incoming webhook URL for alerts |
 
 The server automatically registers itself as service `tp25` with the local Consul agent (`localhost:8500`) on startup, using the auto-detected LAN IP. If Consul isn't running, the server logs a warning and operates normally.
@@ -93,12 +93,12 @@ export ESP32_WIFI_SSID="your-wifi-name"
 export ESP32_WIFI_PASS="your-wifi-password"
 
 # Optional (these have defaults):
-# export ESP32_SERVER_URL="http://tp25.service.consul:8080"  # default; override if not using Consul DNS
+# export ESP32_SERVER_URL="http://tp25.service.consul:8088"  # default; override if not using Consul DNS
 # export ESP32_FIRMWARE_VERSION=1
 # export ESP32_LED_PIN=2
 ```
 
-If you have Consul DNS forwarding set up (port 53), the default `SERVER_URL` of `http://tp25.service.consul:8080` will resolve automatically. Otherwise, set `ESP32_SERVER_URL` to the server's LAN IP.
+If you have Consul DNS forwarding set up (port 53), the default `SERVER_URL` of `http://tp25.service.consul:8088` will resolve automatically. Otherwise, set `ESP32_SERVER_URL` to the server's LAN IP.
 
 Build and flash (inside the flox environment):
 
@@ -121,7 +121,7 @@ Flashing uses [espflash](https://github.com/esp-rs/espflash) (a Rust-based flash
 
 ### 3. Open the Dashboard
 
-Open `http://<server-ip>:8080` in a browser. You should see 4 probe cards updating in real time once the ESP32 connects to the TP25.
+Open `http://<server-ip>:8088` in a browser. You should see 4 probe cards updating in real time once the ESP32 connects to the TP25.
 
 ## Usage
 
@@ -149,7 +149,7 @@ Click the "Reset Cook" button on the dashboard (or `POST /api/session/reset`) to
 
 ## API
 
-All endpoints are available at `http://<server-ip>:8080`.
+All endpoints are available at `http://<server-ip>:8088`.
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -167,7 +167,7 @@ All endpoints are available at `http://<server-ip>:8080`.
 ### Example: Submit Temperature Data
 
 ```bash
-curl -X POST http://localhost:8080/api/data \
+curl -X POST http://localhost:8088/api/data \
   -H 'Content-Type: application/json' \
   -d '{
     "probes": [
@@ -186,14 +186,14 @@ A `temp_f` of `-999.0` indicates a disconnected probe.
 
 ```bash
 # Target temperature alert (meat probe)
-curl -X POST http://localhost:8080/api/alerts \
+curl -X POST http://localhost:8088/api/alerts \
   -H 'Content-Type: application/json' \
   -d '{"probe_id": 2, "alert": {"target_temp": 203.0}}'
 ```
 
 ```bash
 # Range alert (pit probe)
-curl -X POST http://localhost:8080/api/alerts \
+curl -X POST http://localhost:8088/api/alerts \
   -H 'Content-Type: application/json' \
   -d '{"probe_id": 1, "alert": {"low_temp": 225.0, "high_temp": 275.0}}'
 ```
@@ -213,7 +213,7 @@ make esp32-build
 4. Upload the binary to the server:
 
 ```bash
-curl -X POST http://localhost:8080/api/firmware/upload \
+curl -X POST http://localhost:8088/api/firmware/upload \
   -F "firmware=@esp32/.pio/build/esp32/firmware.bin" \
   -F "version=2"
 ```
@@ -232,7 +232,7 @@ curl -X POST http://localhost:8080/api/firmware/upload \
 
 The server runs on your local network. The ESP32 and your phone/laptop need to be on the same network (or have routes to the server).
 
-**Accessing from outside your network:** Set up port forwarding on your router to forward an external port to `<server-ip>:8080`. The specifics depend on your router.
+**Accessing from outside your network:** Set up port forwarding on your router to forward an external port to `<server-ip>:8088`. The specifics depend on your router.
 
 ## Project Structure
 
@@ -282,7 +282,7 @@ make run
 
 # In another terminal, simulate temperature readings
 while true; do
-  curl -s -X POST http://localhost:8080/api/data \
+  curl -s -X POST http://localhost:8088/api/data \
     -H 'Content-Type: application/json' \
     -d "{\"probes\":[
       {\"id\":1,\"temp_f\":$(shuf -i 240-260 -n 1)},
@@ -340,7 +340,7 @@ Alert messages include the alert details and current temps for all 4 probes.
 ### Dashboard not updating
 - Check that the ESP32 is connected (solid LED)
 - Open browser dev tools and check the WebSocket connection to `/api/ws`
-- Verify data is arriving: `curl http://localhost:8080/api/session`
+- Verify data is arriving: `curl http://localhost:8088/api/session`
 
 ## License
 
