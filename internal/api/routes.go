@@ -2,6 +2,7 @@
 package api
 
 import (
+	"encoding/json"
 	"io"
 	"io/fs"
 	"net/http"
@@ -32,6 +33,10 @@ func (s *Server) Routes() *http.ServeMux {
 		http.ServeContent(w, r, "docs.html", time.Time{}, f.(io.ReadSeeker))
 	})
 	mux.HandleFunc("GET /diagnostics", s.handleDiagnostics)
+	mux.HandleFunc("GET /api/version", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]string{"commit": s.gitCommit})
+	})
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("ok\n"))

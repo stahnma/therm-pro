@@ -78,6 +78,31 @@ header h1 {
   gap: 0.5rem;
 }
 
+/* ── Battery Badge ───────────────────────────── */
+.battery-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  padding: 0.35rem 0.6rem;
+  border-radius: 6px;
+  background: var(--bg-btn);
+  font-variant-numeric: tabular-nums;
+}
+
+.battery-badge.battery-low {
+  color: #e74c3c;
+}
+
+.battery-badge.battery-mid {
+  color: #f39c12;
+}
+
+.battery-badge.battery-ok {
+  color: #27ae60;
+}
+
 /* ── Buttons ─────────────────────────────────── */
 .btn {
   border: none;
@@ -299,4 +324,14 @@ footer a {
 
 footer a:hover {
   color: var(--text);
+}
+
+#commit-info {
+  margin-left: 1rem;
+  font-size: 0.75rem;
+  color: var(--text-dimmer);
+}
+
+#commit-info a {
+  font-family: monospace;
 }

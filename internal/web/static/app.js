@@ -29,6 +29,7 @@ const modalTarget   = document.getElementById("modal-target");
 const modalHigh     = document.getElementById("modal-high");
 const modalLow      = document.getElementById("modal-low");
 const modalCancel   = document.getElementById("modal-cancel");
+const batteryBadge  = document.getElementById("battery-badge");
 
 // ── Helpers ─────────────────────────────────────
 function toDisplay(f) {
@@ -38,6 +39,15 @@ function toDisplay(f) {
 }
 
 function unitLabel() { return useCelsius ? "\u00B0C" : "\u00B0F"; }
+
+function updateBattery(pct) {
+  if (pct === null || pct === undefined) return;
+  batteryBadge.textContent = pct + "%";
+  batteryBadge.classList.remove("battery-low", "battery-mid", "battery-ok");
+  if (pct <= 20) batteryBadge.classList.add("battery-low");
+  else if (pct <= 50) batteryBadge.classList.add("battery-mid");
+  else batteryBadge.classList.add("battery-ok");
+}
 
 function probeStatus(probe) {
   if (!probe.connected || probe.current_temp === DISCONNECTED) return "disconnected";
@@ -275,6 +285,12 @@ async function loadSession() {
 
   renderProbeCards();
 
+  // Update battery from most recent history entry
+  if (session.history && session.history.length > 0) {
+    const last = session.history[session.history.length - 1];
+    if (last.battery !== undefined) updateBattery(last.battery);
+  }
+
   // Build chart data from history
   chartData = [[], [], [], [], []];
   if (session.history) {
@@ -306,6 +322,9 @@ function connectWS() {
         const ts = msg.timestamp ? Math.floor(new Date(msg.timestamp).getTime() / 1000) : Math.floor(Date.now() / 1000);
         appendChartPoint(ts, msg.temps);
       }
+      if (msg.battery !== undefined) {
+        updateBattery(msg.battery);
+      }
     } catch (err) {
       console.error("WS parse error:", err);
     }
@@ -321,7 +340,27 @@ function connectWS() {
   };
 }
 
+// ── Commit info ────────────────────────────────
+async function loadCommit() {
+  try {
+    const res = await fetch("/api/version");
+    const data = await res.json();
+    if (data.commit && data.commit !== "dev" && data.commit !== "unknown") {
+      const el = document.getElementById("commit-info");
+      const short = data.commit.substring(0, 7);
+      const link = document.createElement("a");
+      link.href = "https://github.com/stahnma/therm-pro/commit/" + data.commit;
+      link.target = "_blank";
+      link.rel = "noopener";
+      link.textContent = short;
+      el.textContent = "build: ";
+      el.appendChild(link);
+    }
+  } catch (e) { /* ignore */ }
+}
+
 // ── Boot ────────────────────────────────────────
 loadSession().then(() => {
   connectWS();
 });
+loadCommit();

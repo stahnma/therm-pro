@@ -3,8 +3,10 @@
 help: ## Show this help
 	@grep -E '^[a-zA-Z0-9_-]+:.*##' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*##"}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
 
+GIT_COMMIT := $(shell git rev-parse HEAD 2>/dev/null || echo "unknown")
+
 build: ## Build the Go server binary
-	CGO_ENABLED=0 go build -o bin/therm-pro-server ./cmd/therm-pro-server
+	CGO_ENABLED=0 go build -ldflags "-X main.GitCommit=$(GIT_COMMIT)" -o bin/therm-pro-server ./cmd/therm-pro-server
 
 run: ## Run the Go server (no build)
 	CGO_ENABLED=0 go run ./cmd/therm-pro-server

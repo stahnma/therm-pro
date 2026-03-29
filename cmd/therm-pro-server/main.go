@@ -15,6 +15,9 @@ import (
 	"github.com/stahnma/therm-pro/internal/consul"
 )
 
+// GitCommit is set at build time via -ldflags.
+var GitCommit = "dev"
+
 func main() {
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -28,7 +31,7 @@ func main() {
 	sessionPath := filepath.Join(dataDir, "session.json")
 	firmwareDir := filepath.Join(dataDir, "firmware")
 
-	srv := api.NewServer(":"+port, slackWebhook, sessionPath, firmwareDir)
+	srv := api.NewServer(":"+port, slackWebhook, sessionPath, firmwareDir, GitCommit)
 	mux := srv.Routes()
 
 	// Register with local Consul agent

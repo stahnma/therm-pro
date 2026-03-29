@@ -30,6 +30,7 @@ type Server struct {
 	slack        *slack.Client
 	firmware     *firmware.Store
 	sessionPath  string
+	gitCommit    string
 	wsClients    map[*wsClient]bool
 	wsMu         sync.Mutex
 	clientStatus ClientStatus
@@ -58,7 +59,7 @@ type AlertPayload struct {
 
 // NewServer creates a new Server with the given address, Slack webhook URL,
 // and session persistence path.
-func NewServer(addr, slackWebhook, sessionPath, firmwareDir string) *Server {
+func NewServer(addr, slackWebhook, sessionPath, firmwareDir, gitCommit string) *Server {
 	session, err := cook.Load(sessionPath)
 	if err != nil {
 		log.Printf("warning: could not load session: %v", err)
@@ -71,6 +72,7 @@ func NewServer(addr, slackWebhook, sessionPath, firmwareDir string) *Server {
 		slack:       slack.NewClient(slackWebhook),
 		firmware:    firmware.NewStore(firmwareDir),
 		sessionPath: sessionPath,
+		gitCommit:   gitCommit,
 		wsClients:   make(map[*wsClient]bool),
 	}
 }
