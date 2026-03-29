@@ -36,7 +36,7 @@ esp32-build: esp32-config ## Build ESP32 firmware (generates config.h first)
 	cd esp32 && pio run
 
 esp32-flash: esp32-build ## Build and flash ESP32 via USB (uses espflash)
-	espflash flash esp32/.pio/build/esp32/firmware.elf
+	espflash flash --chip esp32 esp32/.pio/build/esp32/firmware.elf
 
 esp32-monitor: ## Monitor ESP32 serial output (uses espflash)
 	espflash monitor
