@@ -3,6 +3,7 @@
 #include <HTTPClient.h>
 #include <NimBLEDevice.h>
 #include "config.h"
+#include "ota.h"
 #include "thermopro.h"
 
 ThermoPro tp;
@@ -35,6 +36,9 @@ void setup() {
         digitalWrite(LED_PIN, !digitalRead(LED_PIN));
     }
     Serial.printf("\nConnected: %s\n", WiFi.localIP().toString().c_str());
+
+    // Check for OTA update
+    checkAndApplyOTA();
 
     // Initialize BLE
     NimBLEDevice::init("");
