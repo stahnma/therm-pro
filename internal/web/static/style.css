@@ -53,6 +53,15 @@ header h1 {
 }
 .btn-unit:hover { background: #3a3a5a; }
 
+.btn-docs {
+  background: #2a2a4a;
+  color: #ccc;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+.btn-docs:hover { background: #3a3a5a; }
+
 .btn-reset {
   background: #c0392b;
   color: #fff;
