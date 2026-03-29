@@ -79,14 +79,16 @@ THERM_PRO_SLACK_WEBHOOK="https://hooks.slack.com/services/T.../B.../..." ./bin/t
 
 ### 2. Configure and Flash the ESP32
 
-Edit `esp32/src/config.h` with your network details:
+Configuration is driven by environment variables so that secrets are never committed to git. Set these before building:
 
-```cpp
-#define WIFI_SSID "your-wifi-name"
-#define WIFI_PASS "your-wifi-password"
-#define SERVER_URL "http://192.168.1.100:8080"  // your server's IP
-#define FIRMWARE_VERSION 1
-#define LED_PIN 2  // onboard LED pin (2 for most ESP32 dev boards)
+```bash
+export ESP32_WIFI_SSID="your-wifi-name"
+export ESP32_WIFI_PASS="your-wifi-password"
+export ESP32_SERVER_URL="http://192.168.1.100:8080"
+
+# Optional (these have defaults):
+# export ESP32_FIRMWARE_VERSION=1
+# export ESP32_LED_PIN=2
 ```
 
 **Finding your server's IP:**
@@ -102,17 +104,20 @@ hostname -I | awk '{print $1}'
 Build and flash (inside the flox environment):
 
 ```bash
-cd esp32
+# Generate config.h from env vars and build
+make esp32-build
 
-# Build only (verify it compiles)
-pio run
+# Or just generate config.h without building
+make esp32-config
 
-# Build and flash via USB (connect ESP32 first)
-pio run -t upload
+# Flash via USB (connect ESP32 first)
+cd esp32 && pio run -t upload
 
 # Monitor serial output (useful for verifying WiFi/BLE connection)
 pio device monitor
 ```
+
+The generated `esp32/src/config.h` is gitignored. A reference template is available at `esp32/src/config.h.example`.
 
 **Note:** PlatformIO under Flox may require disabling the virtualenv check on first run:
 
@@ -206,11 +211,11 @@ curl -X POST http://localhost:8080/api/alerts \
 After the initial USB flash, you can update the ESP32 over WiFi:
 
 1. Make your code changes in `esp32/src/`
-2. Increment `FIRMWARE_VERSION` in `esp32/src/config.h`
-3. Build the firmware:
+2. Increment the firmware version and rebuild:
 
 ```bash
-cd esp32 && pio run
+export ESP32_FIRMWARE_VERSION=2   # bump from previous version
+make esp32-build
 ```
 
 4. Upload the binary to the server:
