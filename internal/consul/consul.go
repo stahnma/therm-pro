@@ -28,8 +28,10 @@ type serviceCheck struct {
 }
 
 var (
-	serviceID  string
-	consulAddr string
+	serviceID   string
+	consulAddr  string
+	registeredIP   string
+	registeredPort int
 )
 
 // lanIP returns the first non-loopback IPv4 address.
@@ -94,8 +96,52 @@ func Register(port int) error {
 		return fmt.Errorf("consul: register returned %d", resp.StatusCode)
 	}
 
+	registeredIP = ip
+	registeredPort = port
+
 	log.Printf("consul: registered as %q at %s:%d", serviceID, ip, port)
 	return nil
+}
+
+// Status holds the current consul registration state.
+type Status struct {
+	Registered bool   `json:"registered"`
+	ServiceID  string `json:"service_id,omitempty"`
+	HealthURL  string `json:"health_url,omitempty"`
+	ServiceURL string `json:"service_url,omitempty"`
+	Healthy    bool   `json:"healthy"`
+	Error      string `json:"error,omitempty"`
+}
+
+// GetStatus checks whether the service is currently registered and healthy in Consul.
+func GetStatus() Status {
+	if serviceID == "" {
+		return Status{Registered: false, Error: "never registered"}
+	}
+
+	s := Status{
+		Registered: true,
+		ServiceID:  serviceID,
+		ServiceURL: fmt.Sprintf("http://%s:%d", registeredIP, registeredPort),
+		HealthURL:  fmt.Sprintf("http://%s:%d/healthz", registeredIP, registeredPort),
+	}
+
+	url := fmt.Sprintf("%s/v1/agent/health/service/id/%s", consulAddr, serviceID)
+	client := &http.Client{Timeout: 3 * time.Second}
+	resp, err := client.Get(url)
+	if err != nil {
+		s.Error = fmt.Sprintf("consul unreachable: %v", err)
+		return s
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusOK {
+		s.Healthy = true
+	} else {
+		s.Error = fmt.Sprintf("consul health check returned %d", resp.StatusCode)
+	}
+
+	return s
 }
 
 // Deregister removes the service from the Consul agent.

@@ -31,6 +31,7 @@ func (s *Server) Routes() *http.ServeMux {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		http.ServeContent(w, r, "docs.html", time.Time{}, f.(io.ReadSeeker))
 	})
+	mux.HandleFunc("GET /diagnostics", s.handleDiagnostics)
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("ok\n"))

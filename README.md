@@ -154,7 +154,8 @@ All endpoints are available at `http://<server-ip>:8088`.
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | `GET` | `/` | Web dashboard |
-| `GET` | `/healthz` | Health check |
+| `GET` | `/healthz` | Health check (liveness probe for Consul) |
+| `GET` | `/diagnostics` | System diagnostics and connectivity status |
 | `POST` | `/api/data` | Submit probe readings (ESP32 uses this) |
 | `GET` | `/api/session` | Get current cook session |
 | `POST` | `/api/session/reset` | Reset cook session |
@@ -176,11 +177,13 @@ curl -X POST http://localhost:8088/api/data \
       {"id": 3, "temp_f": 180.1},
       {"id": 4, "temp_f": -999.0}
     ],
-    "battery": 85
+    "battery": 85,
+    "firmware_version": 2,
+    "ble_connected": true
   }'
 ```
 
-A `temp_f` of `-999.0` indicates a disconnected probe.
+A `temp_f` of `-999.0` indicates a disconnected probe. The `firmware_version` and `ble_connected` fields are optional and used by the `/diagnostics` endpoint to report ESP32 status.
 
 ### Example: Set Alert
 
@@ -314,6 +317,49 @@ Copy `bin/therm-pro-server` to the target machine and run it.
 5. Copy the webhook URL and set it as `THERM_PRO_SLACK_WEBHOOK`
 
 Alert messages include the alert details and current temps for all 4 probes.
+
+## Diagnostics
+
+The `/diagnostics` endpoint provides a full connectivity health check across the system. Access it from the "Diagnostics" link in the dashboard nav bar or via curl:
+
+```bash
+curl -s http://localhost:8088/diagnostics | jq .
+```
+
+Example response:
+
+```json
+{
+  "status": "ok",
+  "server_firmware_version": 3,
+  "consul": {
+    "registered": true,
+    "service_id": "tp25-myhost",
+    "service_url": "http://192.168.1.100:8088",
+    "health_url": "http://192.168.1.100:8088/healthz",
+    "healthy": true
+  },
+  "esp32": {
+    "status": "ok",
+    "ip": "192.168.1.50:54321",
+    "firmware_version": 3,
+    "ble_connected": true,
+    "last_seen": "2025-07-04T14:30:00Z",
+    "data_age": "3s",
+    "data_age_seconds": 3
+  }
+}
+```
+
+The top-level `status` is `"ok"` when everything is healthy, or `"degraded"` when any component has an issue. Here's what to look for:
+
+| Problem | What you'll see |
+|---------|-----------------|
+| Consul not running or registration failed | `consul.healthy: false` with an error message |
+| ESP32 has never connected | `esp32.status: "no data received"` |
+| ESP32 stopped sending data (>30s) | `esp32.status: "stale"` with `data_age` showing how long |
+| ESP32 can't find the TP25 | `esp32.ble_connected: false`, `esp32.status: "ble_disconnected"` |
+| Firmware version mismatch | Compare `server_firmware_version` vs `esp32.firmware_version` |
 
 ## Troubleshooting
 

@@ -68,7 +68,9 @@ void loop() {
             }
             json += "{\"id\":" + String(i + 1) + ",\"temp_f\":" + String(temp_f, 1) + "}";
         }
-        json += "],\"battery\":" + String(data.battery) + "}";
+        json += "],\"battery\":" + String(data.battery);
+        json += ",\"firmware_version\":" + String(FIRMWARE_VERSION);
+        json += ",\"ble_connected\":true}";
 
         // POST to server
         HTTPClient http;

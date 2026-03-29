@@ -86,6 +86,13 @@ func (s *Store) HandleLatest(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// Version returns the current firmware version number.
+func (s *Store) Version() int {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.version
+}
+
 func (s *Store) HandleDownload(w http.ResponseWriter, r *http.Request) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
