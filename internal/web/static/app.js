@@ -5,13 +5,19 @@ let chart = null;
 let chartData = [[], [], [], [], []]; // [timestamps, p1, p2, p3, p4]
 let useCelsius = localStorage.getItem("useCelsius") === "true";
 
-const PROBE_COLORS = ["#2196f3", "#ff9800", "#4caf50", "#9c27b0"];
+const PROBE_COLORS_DARK  = ["#c0c0c0", "#4a90d9", "#888888", "#d4a017"];
+const PROBE_COLORS_LIGHT = ["#909090", "#2a6fb5", "#333333", "#b8860b"];
 const DISCONNECTED = -999.0;
+
+function probeColors() {
+  return document.documentElement.dataset.theme === "light" ? PROBE_COLORS_LIGHT : PROBE_COLORS_DARK;
+}
 
 // ── DOM refs ────────────────────────────────────
 const probeGrid     = document.getElementById("probe-grid");
 const chartEl       = document.getElementById("chart-container");
 const toggleBtn     = document.getElementById("toggle-unit");
+const themeBtn      = document.getElementById("toggle-theme");
 const resetBtn      = document.getElementById("reset-cook");
 const banner        = document.getElementById("reconnect-banner");
 const modalOverlay  = document.getElementById("modal-overlay");
@@ -54,8 +60,9 @@ function renderProbeCards() {
   session.probes.forEach((p) => {
     const status = probeStatus(p);
     const card = document.createElement("div");
-    card.className = "probe-card status-" + status;
+    card.className = "probe-card" + (status === "disconnected" ? " status-disconnected" : "");
     card.dataset.id = p.id;
+    card.style.borderLeftColor = probeColors()[p.id - 1];
 
     const target = p.alert && p.alert.target_temp;
     const targetStr = (target != null && target > 0) ? "Target: " + toDisplay(target) : "";
@@ -142,6 +149,23 @@ modalForm.addEventListener("submit", async (e) => {
   closeModal();
 });
 
+// ── Theme Toggle ────────────────────────────────
+let darkMode = localStorage.getItem("theme") !== "light";
+
+function applyTheme() {
+  document.documentElement.dataset.theme = darkMode ? "dark" : "light";
+  themeBtn.textContent = darkMode ? "Dark" : "Light";
+}
+applyTheme();
+
+themeBtn.addEventListener("click", () => {
+  darkMode = !darkMode;
+  localStorage.setItem("theme", darkMode ? "dark" : "light");
+  applyTheme();
+  renderProbeCards();
+  if (chart) rebuildChart();
+});
+
 // ── F/C Toggle ──────────────────────────────────
 function updateUnitBtn() { toggleBtn.textContent = useCelsius ? "\u00B0C" : "\u00B0F"; }
 updateUnitBtn();
@@ -170,6 +194,10 @@ resetBtn.addEventListener("click", async () => {
 // ── Chart ───────────────────────────────────────
 function chartOpts() {
   const width = Math.min(chartEl.clientWidth - 32, 920);
+  const style = getComputedStyle(document.documentElement);
+  const axisStroke = style.getPropertyValue("--axis-stroke").trim();
+  const gridStroke = style.getPropertyValue("--grid-line").trim();
+  const colors = probeColors();
   return {
     width: width,
     height: 280,
@@ -177,10 +205,10 @@ function chartOpts() {
     cursor: { show: true },
     scales: { x: { time: true }, y: {} },
     axes: [
-      { stroke: "#666", grid: { stroke: "#2a2a4a" } },
+      { stroke: axisStroke, grid: { stroke: gridStroke } },
       {
-        stroke: "#666",
-        grid: { stroke: "#2a2a4a" },
+        stroke: axisStroke,
+        grid: { stroke: gridStroke },
         values: (_, ticks) => ticks.map(v => {
           const d = useCelsius ? (v - 32) * 5 / 9 : v;
           return Math.round(d) + "\u00B0";
@@ -189,10 +217,10 @@ function chartOpts() {
     ],
     series: [
       {},
-      { label: "Probe 1", stroke: PROBE_COLORS[0], width: 2 },
-      { label: "Probe 2", stroke: PROBE_COLORS[1], width: 2 },
-      { label: "Probe 3", stroke: PROBE_COLORS[2], width: 2 },
-      { label: "Probe 4", stroke: PROBE_COLORS[3], width: 2 },
+      { label: "Probe 1", stroke: colors[0], width: 2 },
+      { label: "Probe 2", stroke: colors[1], width: 2 },
+      { label: "Probe 3", stroke: colors[2], width: 2 },
+      { label: "Probe 4", stroke: colors[3], width: 2 },
     ],
   };
 }

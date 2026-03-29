@@ -1,10 +1,55 @@
+/* ── Theme Variables ──────────────────────────── */
+:root {
+  --bg: #1a1a2e;
+  --bg-header: #0f0f23;
+  --bg-card: #16213e;
+  --bg-card-hover: #1a2744;
+  --bg-input: #1a1a2e;
+  --bg-btn: #2a2a4a;
+  --bg-btn-hover: #3a3a5a;
+  --border: #2a2a4a;
+  --text: #eee;
+  --text-muted: #ccc;
+  --text-dim: #999;
+  --text-dimmer: #888;
+  --text-legend: #aaa;
+  --grid-line: #2a2a4a;
+  --axis-stroke: #666;
+  --modal-overlay: rgba(0, 0, 0, 0.7);
+  --modal-shadow: rgba(0, 0, 0, 0.5);
+  --banner-bg: #ff9800;
+  --banner-text: #1a1a2e;
+}
+
+[data-theme="light"] {
+  --bg: #f0f2f5;
+  --bg-header: #ffffff;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f5f7fa;
+  --bg-input: #f0f2f5;
+  --bg-btn: #e2e4e8;
+  --bg-btn-hover: #d0d3d8;
+  --border: #d0d3d8;
+  --text: #1a1a2e;
+  --text-muted: #444;
+  --text-dim: #666;
+  --text-dimmer: #888;
+  --text-legend: #555;
+  --grid-line: #e0e0e0;
+  --axis-stroke: #999;
+  --modal-overlay: rgba(0, 0, 0, 0.4);
+  --modal-shadow: rgba(0, 0, 0, 0.15);
+  --banner-bg: #ff9800;
+  --banner-text: #fff;
+}
+
 /* ── Reset & Base ─────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background: #1a1a2e;
-  color: #eee;
+  background: var(--bg);
+  color: var(--text);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
 }
@@ -15,8 +60,8 @@ header {
   align-items: center;
   justify-content: space-between;
   padding: 1rem 1.25rem;
-  background: #0f0f23;
-  border-bottom: 1px solid #2a2a4a;
+  background: var(--bg-header);
+  border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -47,20 +92,27 @@ header h1 {
 .btn:active { transform: scale(0.96); }
 
 .btn-unit {
-  background: #2a2a4a;
-  color: #ccc;
+  background: var(--bg-btn);
+  color: var(--text-muted);
   min-width: 2.75rem;
 }
-.btn-unit:hover { background: #3a3a5a; }
+.btn-unit:hover { background: var(--bg-btn-hover); }
+
+.btn-theme {
+  background: var(--bg-btn);
+  color: var(--text-muted);
+  min-width: 2.75rem;
+}
+.btn-theme:hover { background: var(--bg-btn-hover); }
 
 .btn-docs {
-  background: #2a2a4a;
-  color: #ccc;
+  background: var(--bg-btn);
+  color: var(--text-muted);
   text-decoration: none;
   display: inline-flex;
   align-items: center;
 }
-.btn-docs:hover { background: #3a3a5a; }
+.btn-docs:hover { background: var(--bg-btn-hover); }
 
 .btn-reset {
   background: #c0392b;
@@ -69,10 +121,10 @@ header h1 {
 .btn-reset:hover { background: #e74c3c; }
 
 .btn-cancel {
-  background: #2a2a4a;
-  color: #ccc;
+  background: var(--bg-btn);
+  color: var(--text-muted);
 }
-.btn-cancel:hover { background: #3a3a5a; }
+.btn-cancel:hover { background: var(--bg-btn-hover); }
 
 .btn-save {
   background: #2196f3;
@@ -82,8 +134,8 @@ header h1 {
 
 /* ── Reconnect Banner ────────────────────────── */
 .banner {
-  background: #ff9800;
-  color: #1a1a2e;
+  background: var(--banner-bg);
+  color: var(--banner-text);
   text-align: center;
   padding: 0.5rem;
   font-weight: 600;
@@ -112,22 +164,18 @@ main {
 
 /* ── Probe Card ──────────────────────────────── */
 .probe-card {
-  background: #16213e;
+  background: var(--bg-card);
   border-radius: 10px;
   padding: 1rem 1.25rem;
-  border-left: 4px solid #4caf50;
+  border-left: 4px solid #555;
   cursor: pointer;
   transition: background 0.15s, border-color 0.2s;
   user-select: none;
 }
 
-.probe-card:hover { background: #1a2744; }
+.probe-card:hover { background: var(--bg-card-hover); }
 
-.probe-card.status-normal  { border-left-color: #4caf50; }
-.probe-card.status-warning { border-left-color: #ff9800; }
-.probe-card.status-alert   { border-left-color: #f44336; }
 .probe-card.status-disconnected {
-  border-left-color: #555;
   opacity: 0.55;
 }
 
@@ -135,7 +183,7 @@ main {
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #999;
+  color: var(--text-dim);
   margin-bottom: 0.25rem;
 }
 
@@ -148,28 +196,28 @@ main {
 
 .probe-target {
   font-size: 0.8rem;
-  color: #888;
+  color: var(--text-dimmer);
   margin-top: 0.35rem;
 }
 
 /* ── Chart ───────────────────────────────────── */
 #chart-container {
-  background: #16213e;
+  background: var(--bg-card);
   border-radius: 10px;
   padding: 1rem;
   overflow-x: auto;
 }
 
-/* uPlot overrides for dark theme */
-.u-title { color: #ccc !important; }
-.u-legend { color: #aaa !important; font-size: 0.8rem !important; }
+/* uPlot overrides */
+.u-title { color: var(--text-muted) !important; }
+.u-legend { color: var(--text-legend) !important; font-size: 0.8rem !important; }
 .u-legend .u-series td { padding: 2px 6px !important; }
 
 /* ── Modal ───────────────────────────────────── */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: var(--modal-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -178,12 +226,12 @@ main {
 }
 
 .modal {
-  background: #16213e;
+  background: var(--bg-card);
   border-radius: 12px;
   padding: 1.5rem;
   width: 100%;
   max-width: 380px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 8px 32px var(--modal-shadow);
 }
 
 .modal h2 {
@@ -194,7 +242,7 @@ main {
 .modal label {
   display: block;
   font-size: 0.8rem;
-  color: #999;
+  color: var(--text-dim);
   margin-bottom: 0.25rem;
   margin-top: 0.75rem;
 }
@@ -204,10 +252,10 @@ main {
 .modal input {
   width: 100%;
   padding: 0.6rem 0.75rem;
-  border: 1px solid #2a2a4a;
+  border: 1px solid var(--border);
   border-radius: 6px;
-  background: #1a1a2e;
-  color: #eee;
+  background: var(--bg-input);
+  color: var(--text);
   font-size: 1rem;
   outline: none;
   transition: border-color 0.15s;
