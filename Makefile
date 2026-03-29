@@ -1,4 +1,4 @@
-.PHONY: help build run clean swag test esp32-config esp32-build
+.PHONY: help build run clean test esp32-config esp32-build
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z0-9_-]+:.*##' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*##"}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
@@ -14,9 +14,6 @@ test: ## Run all Go tests
 
 clean: ## Remove build artifacts
 	rm -rf bin/
-
-swag: ## Generate Swagger/OpenAPI docs
-	swag init -g cmd/therm-pro-server/main.go -o internal/api/docs
 
 esp32-config: ## Generate esp32/src/config.h from env vars (ESP32_WIFI_SSID, ESP32_WIFI_PASS, ESP32_SERVER_URL)
 	@if [ -z "$$ESP32_WIFI_SSID" ]; then echo "ERROR: ESP32_WIFI_SSID is not set"; exit 1; fi
