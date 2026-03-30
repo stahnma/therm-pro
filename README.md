@@ -12,7 +12,7 @@ TP25 --BLE--> ESP32 --HTTP/WiFi--> Go Server --WebSocket--> Browser
 
 ## The ThermoPro TP25
 
-The [ThermoPro TP25](https://buythermopro.com/products/tp25-wireless-leave-in-meat-thermometer) is a wireless Bluetooth leave-in meat thermometer that supports up to 4 probes. It transmits temperature readings over Bluetooth Low Energy (BLE), which makes it possible to bypass the official phone app and read data directly with an ESP32.
+The [ThermoPro TP25](https://buythermopro.com/products/tp25-wireless-leave-in-meat-thermometer) ([Amazon](https://www.amazon.com/dp/B09MJ1H5JY)) is a wireless Bluetooth leave-in meat thermometer that supports up to 4 probes. It transmits temperature readings over Bluetooth Low Energy (BLE), which makes it possible to bypass the official phone app and read data directly with an ESP32.
 
 ![ThermoPro TP25](docs/img/TP25-image.png)
 
