@@ -27,10 +27,12 @@ type Server struct {
 	addr         string
 	session      *cook.Session
 	alerts       *cook.AlertEngine
-	slack        *slack.Client
-	firmware     *firmware.Store
-	sessionPath  string
-	gitCommit    string
+	slack              *slack.Client
+	slackSigningSecret string
+	slackBotToken      string
+	firmware           *firmware.Store
+	sessionPath        string
+	gitCommit          string
 	wsClients    map[*wsClient]bool
 	wsMu         sync.Mutex
 	clientStatus ClientStatus
@@ -59,21 +61,23 @@ type AlertPayload struct {
 
 // NewServer creates a new Server with the given address, Slack webhook URL,
 // and session persistence path.
-func NewServer(addr, slackWebhook, sessionPath, firmwareDir, gitCommit string) *Server {
+func NewServer(addr, slackWebhook, slackSigningSecret, slackBotToken, sessionPath, firmwareDir, gitCommit string) *Server {
 	session, err := cook.Load(sessionPath)
 	if err != nil {
 		log.Printf("warning: could not load session: %v", err)
 		session = cook.NewSession()
 	}
 	return &Server{
-		addr:        addr,
-		session:     session,
-		alerts:      cook.NewAlertEngine(),
-		slack:       slack.NewClient(slackWebhook),
-		firmware:    firmware.NewStore(firmwareDir),
-		sessionPath: sessionPath,
-		gitCommit:   gitCommit,
-		wsClients:   make(map[*wsClient]bool),
+		addr:               addr,
+		session:            session,
+		alerts:             cook.NewAlertEngine(),
+		slack:              slack.NewClient(slackWebhook),
+		slackSigningSecret: slackSigningSecret,
+		slackBotToken:      slackBotToken,
+		firmware:           firmware.NewStore(firmwareDir),
+		sessionPath:        sessionPath,
+		gitCommit:          gitCommit,
+		wsClients:          make(map[*wsClient]bool),
 	}
 }
 

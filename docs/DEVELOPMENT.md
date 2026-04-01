@@ -44,7 +44,8 @@ therm-pro/
     consul/                      Consul service registration
     cook/                        Session data model, alerts, persistence
     firmware/                    OTA firmware management
-    slack/                       Slack webhook client
+    chart/                       Server-side chart rendering (PNG)
+    slack/                       Slack webhook client, slash command handler
     web/static/                  Embedded dashboard (HTML/CSS/JS)
   esp32/
     src/                         ESP32 firmware (Arduino/C++)
@@ -127,6 +128,7 @@ All endpoints are available at `http://<server-ip>:8088`.
 | `GET` | `/api/firmware/latest` | Check latest firmware version |
 | `GET` | `/api/firmware/download` | Download firmware binary |
 | `POST` | `/api/firmware/upload` | Upload new firmware binary |
+| `POST` | `/slack/command` | Slack slash command endpoint (requires signing secret) |
 
 ### Example: Submit Temperature Data
 
