@@ -73,6 +73,16 @@ func RenderSessionChart(history []cook.Reading, probes [4]cook.Probe) ([]byte, e
 		}
 	}
 
+	// Determine session start time for elapsed-hour x-axis labels
+	var sessionStart time.Time
+	for _, s := range series {
+		if ts, ok := s.(chart.TimeSeries); ok && len(ts.XValues) > 0 {
+			if sessionStart.IsZero() || ts.XValues[0].Before(sessionStart) {
+				sessionStart = ts.XValues[0]
+			}
+		}
+	}
+
 	// If no series have data, create a minimal empty chart.
 	// go-chart requires at least 2 x-values to render.
 	if len(series) == 0 {
@@ -97,6 +107,7 @@ func RenderSessionChart(history []cook.Reading, probes [4]cook.Probe) ([]byte, e
 			Style: chart.Style{
 				FontColor: lightText,
 			},
+			Ticks:          generateHourTicks(sessionStart, history),
 			GridMajorStyle: chart.Style{
 				StrokeColor: gridLine,
 				StrokeWidth: 1,
@@ -131,4 +142,48 @@ func RenderSessionChart(history []cook.Reading, probes [4]cook.Probe) ([]byte, e
 		return nil, fmt.Errorf("render chart: %w", err)
 	}
 	return buf.Bytes(), nil
+}
+
+// generateHourTicks creates tick marks at adaptive intervals from session start.
+// Under 2h: 30min ticks. 2-8h: 1h ticks. Over 8h: 2h ticks.
+func generateHourTicks(sessionStart time.Time, history []cook.Reading) []chart.Tick {
+	if len(history) == 0 || sessionStart.IsZero() {
+		return nil
+	}
+
+	var lastTime time.Time
+	for _, r := range history {
+		if r.Timestamp.After(lastTime) {
+			lastTime = r.Timestamp
+		}
+	}
+
+	duration := lastTime.Sub(sessionStart)
+	var interval time.Duration
+	switch {
+	case duration < 2*time.Hour:
+		interval = 30 * time.Minute
+	case duration < 8*time.Hour:
+		interval = time.Hour
+	default:
+		interval = 2 * time.Hour
+	}
+
+	var ticks []chart.Tick
+	for offset := time.Duration(0); offset <= duration+interval; offset += interval {
+		t := sessionStart.Add(offset)
+		h := int(offset.Hours())
+		m := int(offset.Minutes()) % 60
+		var label string
+		if m == 0 {
+			label = fmt.Sprintf("%dh", h)
+		} else {
+			label = fmt.Sprintf("%dh%dm", h, m)
+		}
+		ticks = append(ticks, chart.Tick{
+			Value: chart.TimeToFloat64(t),
+			Label: label,
+		})
+	}
+	return ticks
 }
