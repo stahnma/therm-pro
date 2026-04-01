@@ -73,6 +73,16 @@ func RenderSessionChart(history []cook.Reading, probes [4]cook.Probe) ([]byte, e
 		}
 	}
 
+	// Determine session start time for elapsed-hour x-axis labels
+	var sessionStart time.Time
+	for _, s := range series {
+		if ts, ok := s.(chart.TimeSeries); ok && len(ts.XValues) > 0 {
+			if sessionStart.IsZero() || ts.XValues[0].Before(sessionStart) {
+				sessionStart = ts.XValues[0]
+			}
+		}
+	}
+
 	// If no series have data, create a minimal empty chart.
 	// go-chart requires at least 2 x-values to render.
 	if len(series) == 0 {
@@ -96,6 +106,19 @@ func RenderSessionChart(history []cook.Reading, probes [4]cook.Probe) ([]byte, e
 		XAxis: chart.XAxis{
 			Style: chart.Style{
 				FontColor: lightText,
+			},
+			ValueFormatter: func(v interface{}) string {
+				if t, ok := v.(float64); ok {
+					ts := chart.TimeFromFloat64(t)
+					elapsed := ts.Sub(sessionStart)
+					h := int(elapsed.Hours())
+					m := int(elapsed.Minutes()) % 60
+					if m == 0 {
+						return fmt.Sprintf("%dh", h)
+					}
+					return fmt.Sprintf("%dh%dm", h, m)
+				}
+				return ""
 			},
 			GridMajorStyle: chart.Style{
 				StrokeColor: gridLine,
