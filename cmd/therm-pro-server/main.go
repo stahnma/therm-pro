@@ -25,13 +25,15 @@ func main() {
 	}
 
 	slackWebhook := os.Getenv("THERM_PRO_SLACK_WEBHOOK")
+	slackSigningSecret := os.Getenv("THERM_PRO_SLACK_SIGNING_SECRET")
+	slackBotToken := os.Getenv("THERM_PRO_SLACK_BOT_TOKEN")
 
 	homeDir, _ := os.UserHomeDir()
 	dataDir := filepath.Join(homeDir, ".therm-pro")
 	sessionPath := filepath.Join(dataDir, "session.json")
 	firmwareDir := filepath.Join(dataDir, "firmware")
 
-	srv := api.NewServer(":"+port, slackWebhook, sessionPath, firmwareDir, GitCommit)
+	srv := api.NewServer(":"+port, slackWebhook, slackSigningSecret, slackBotToken, sessionPath, firmwareDir, GitCommit)
 	mux := srv.Routes()
 
 	// Register with local Consul agent

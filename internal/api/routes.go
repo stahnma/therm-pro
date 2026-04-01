@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/stahnma/therm-pro/internal/slack"
 	"github.com/stahnma/therm-pro/internal/web"
 )
 
@@ -41,6 +42,12 @@ func (s *Server) Routes() *http.ServeMux {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("ok\n"))
 	})
+
+	// Slack slash command
+	if s.slackSigningSecret != "" {
+		cmdHandler := slack.NewCommandHandler(s.slackSigningSecret, s.slackBotToken, s.session)
+		mux.Handle("POST /slack/command", cmdHandler)
+	}
 
 	// Serve embedded web dashboard
 	staticFS, _ := fs.Sub(web.StaticFiles, "static")
