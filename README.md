@@ -66,8 +66,8 @@ The server listens on port 8088 by default and stores session data in `~/.therm-
 |----------|---------|-------------|
 | `PORT` | `8088` | HTTP server port |
 | `THERM_PRO_SLACK_WEBHOOK` | _(empty)_ | Slack incoming webhook URL for alerts |
-| `THERM_PRO_SLACK_SIGNING_SECRET` | _(empty)_ | Slack app signing secret (for `/bbq` slash command) |
-| `THERM_PRO_SLACK_BOT_TOKEN` | _(empty)_ | Slack bot token (for `/bbq` slash command) |
+| `THERM_PRO_SLACK_SIGNING_SECRET` | _(empty)_ | Slack app signing secret (for `/tp25` slash command) |
+| `THERM_PRO_SLACK_BOT_TOKEN` | _(empty)_ | Slack bot token (for `/tp25` slash command) |
 
 The server automatically registers itself with the local Consul agent (`localhost:8500`) on startup. If Consul isn't running, the server logs a warning and operates normally.
 
@@ -152,9 +152,9 @@ After the initial USB flash, you can update the ESP32 over WiFi:
 
 Alert messages include the alert details and current temps for all 4 probes.
 
-### Slack `/bbq` Slash Command (Pull Status)
+### Slack `/tp25` Slash Command (Pull Status)
 
-Type `/bbq` in any Slack channel to get the current cook status: probe temperatures, battery level, and a temperature history chart as a PNG image.
+Type `/tp25` in any Slack channel to get the current cook status: probe temperatures, battery level, and a temperature history chart as a PNG image.
 
 **Setup:**
 
@@ -171,13 +171,13 @@ Type `/bbq` in any Slack channel to get the current cook status: probe temperatu
 ```bash
 # Install cloudflared and authenticate
 cloudflared tunnel login
-cloudflared tunnel create bbq
+cloudflared tunnel create tp25
 
 # Route traffic to your server
-cloudflared tunnel route dns bbq bbq.yourdomain.com
+cloudflared tunnel route dns tp25 tp25.yourdomain.com
 
 # Run the tunnel (or install as a systemd service)
-cloudflared tunnel --url http://localhost:8088 run bbq
+cloudflared tunnel --url http://localhost:8088 run tp25
 ```
 
 For development/testing, you can use [ngrok](https://ngrok.com/) instead: `ngrok http 8088`.
