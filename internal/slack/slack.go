@@ -90,12 +90,13 @@ func (c *Client) UploadFileAndPost(pngData []byte, channelID, messageText string
 		OK        bool   `json:"ok"`
 		UploadURL string `json:"upload_url"`
 		FileID    string `json:"file_id"`
+		Error     string `json:"error,omitempty"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&uploadResp); err != nil {
 		return fmt.Errorf("slack file upload: decode getUploadURLExternal: %w", err)
 	}
 	if !uploadResp.OK {
-		return fmt.Errorf("slack file upload: getUploadURLExternal returned ok=false")
+		return fmt.Errorf("slack file upload: getUploadURLExternal: %s", uploadResp.Error)
 	}
 
 	// Step 2: Upload the file data to the provided URL.
@@ -104,6 +105,9 @@ func (c *Client) UploadFileAndPost(pngData []byte, channelID, messageText string
 		return fmt.Errorf("slack file upload: upload: %w", err)
 	}
 	uploadResp2.Body.Close()
+	if uploadResp2.StatusCode != http.StatusOK {
+		return fmt.Errorf("slack file upload: upload returned %d", uploadResp2.StatusCode)
+	}
 
 	// Step 3: Complete the upload and share to channel.
 	completeBody, _ := json.Marshal(map[string]interface{}{
@@ -125,14 +129,15 @@ func (c *Client) UploadFileAndPost(pngData []byte, channelID, messageText string
 	defer completeResp.Body.Close()
 
 	var completeResult struct {
-		OK bool `json:"ok"`
+		OK    bool   `json:"ok"`
+		Error string `json:"error,omitempty"`
 	}
 	body, _ := io.ReadAll(completeResp.Body)
 	if err := json.Unmarshal(body, &completeResult); err != nil {
 		return fmt.Errorf("slack file upload: decode completeUploadExternal: %w", err)
 	}
 	if !completeResult.OK {
-		return fmt.Errorf("slack file upload: completeUploadExternal returned ok=false")
+		return fmt.Errorf("slack file upload: completeUploadExternal: %s", completeResult.Error)
 	}
 
 	return nil

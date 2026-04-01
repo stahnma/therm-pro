@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -49,15 +50,16 @@ func (h *CommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Build status text
-	statusText := FormatStatusText(h.session)
-
-	// Generate chart
+	// Snapshot session data under a single lock
 	h.session.RLock()
 	history := make([]cook.Reading, len(h.session.History))
 	copy(history, h.session.History)
 	probes := h.session.Probes
+	started := h.session.Started
 	h.session.RUnlock()
+
+	// Build status text
+	statusText := formatStatus(probes, history, started)
 
 	pngData, err := chart.RenderSessionChart(history, probes)
 	if err != nil {
@@ -80,11 +82,19 @@ func (h *CommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // FormatStatusText builds the BBQ status message text.
+// It acquires a read lock on the session.
 func FormatStatusText(session *cook.Session) string {
 	session.RLock()
-	defer session.RUnlock()
+	probes := session.Probes
+	history := session.History
+	started := session.Started
+	session.RUnlock()
+	return formatStatus(probes, history, started)
+}
 
-	elapsed := time.Since(session.Started).Round(time.Minute)
+// formatStatus builds the status text from already-snapshotted data.
+func formatStatus(probes [cook.NumProbes]cook.Probe, history []cook.Reading, started time.Time) string {
+	elapsed := time.Since(started).Round(time.Minute)
 	hours := int(elapsed.Hours())
 	minutes := int(elapsed.Minutes()) % 60
 
@@ -92,12 +102,12 @@ func FormatStatusText(session *cook.Session) string {
 	fmt.Fprintf(&b, "*BBQ Status* (session started %dh %dm ago)\n", hours, minutes)
 
 	battery := 0
-	if len(session.History) > 0 {
-		battery = session.History[len(session.History)-1].Battery
+	if len(history) > 0 {
+		battery = history[len(history)-1].Battery
 	}
 
 	for i := 0; i < cook.NumProbes; i++ {
-		p := session.Probes[i]
+		p := probes[i]
 		if p.Connected {
 			fmt.Fprintf(&b, "  %s (Probe %d):  %.1f°F\n", p.Label, p.ID, p.CurrentTemp)
 		} else {
@@ -111,11 +121,9 @@ func FormatStatusText(session *cook.Session) string {
 
 // parseFormValue extracts a value from a URL-encoded form body.
 func parseFormValue(body, key string) string {
-	for _, pair := range strings.Split(body, "&") {
-		parts := strings.SplitN(pair, "=", 2)
-		if len(parts) == 2 && parts[0] == key {
-			return parts[1]
-		}
+	vals, err := url.ParseQuery(body)
+	if err != nil {
+		return ""
 	}
-	return ""
+	return vals.Get(key)
 }
