@@ -158,11 +158,9 @@ Type `/bbq` in any Slack channel to get the current cook status: probe temperatu
 
 **Setup:**
 
-1. Create a Slack App at [api.slack.com/apps](https://api.slack.com/apps)
-2. Under **Slash Commands**, create a new command:
-   - Command: `/bbq`
-   - Request URL: `https://<your-domain>/slack/command`
-3. Under **OAuth & Permissions**, add these Bot Token Scopes: `commands`, `chat:write`, `files:write`
+1. Go to [api.slack.com/apps](https://api.slack.com/apps) and click **Create New App > From a manifest**
+2. Select your workspace, then paste the contents of [`contrib/slack-app-manifest.json`](contrib/slack-app-manifest.json)
+3. Replace `REPLACE_WITH_YOUR_DOMAIN` in the slash command URL with your actual domain
 4. Install the app to your workspace
 5. Set environment variables:
    - `THERM_PRO_SLACK_SIGNING_SECRET` -- from **Basic Information > App Credentials > Signing Secret**
