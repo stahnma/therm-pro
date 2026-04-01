@@ -14,7 +14,7 @@
         "command": "/tp25",
         "url": "https://REPLACE_WITH_YOUR_DOMAIN/slack/command",
         "description": "Get current BBQ probe temperatures and chart",
-        "usage_hint": "",
+        "usage_hint": "Get current probe temps, battery, and chart",
         "should_escape": false
       }
     ]
