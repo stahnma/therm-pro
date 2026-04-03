@@ -72,8 +72,7 @@ The server listens on port 8088 by default and stores session data in `~/.therm-
 | `PORT` | `8088` | HTTP server port |
 | `THERM_PRO_ALLOWED_CIDR` | `192.168.1.0/24` | CIDR range for home network (full access without auth) |
 | `THERM_PRO_TRUST_PROXY` | `false` | Trust `X-Forwarded-For` header (set `true` behind a reverse proxy) |
-| `THERM_PRO_WEBAUTHN_RP_ID` | `localhost` | WebAuthn relying party ID (set to your domain for passkey auth) |
-| `THERM_PRO_WEBAUTHN_ORIGIN` | `http://localhost:8088` | WebAuthn origin URL (set to your public URL for passkey auth) |
+| `THERM_PRO_WEBAUTHN_ORIGIN` | `http://localhost:8088` | WebAuthn origin URL (set to your public URL for passkey auth; domain is derived automatically) |
 | `THERM_PRO_SLACK_WEBHOOK` | _(empty)_ | Slack incoming webhook URL for alerts |
 | `THERM_PRO_SLACK_SIGNING_SECRET` | _(empty)_ | Slack app signing secret (for `/tp25` slash command) |
 | `THERM_PRO_SLACK_BOT_TOKEN` | _(empty)_ | Slack bot token (for `/tp25` slash command) |
@@ -84,7 +83,6 @@ Example `~/.therm-pro/config.yaml`:
 port: 8088
 allowed_cidr: "192.168.1.0/24"
 trust_proxy: false
-webauthn_rp_id: "localhost"
 webauthn_origin: "http://localhost:8088"
 
 slack:
@@ -241,10 +239,9 @@ Passkeys let you authenticate from outside your home network using 1Password, Fa
 3. Your authenticator (1Password, etc.) handles the rest
 4. Session lasts 24 hours
 
-**Production setup:** When running behind a reverse proxy (e.g., Cloudflare Tunnel), set `THERM_PRO_WEBAUTHN_RP_ID` to your domain and `THERM_PRO_WEBAUTHN_ORIGIN` to your public URL:
+**Production setup:** When running behind a reverse proxy (e.g., Cloudflare Tunnel), set `THERM_PRO_WEBAUTHN_ORIGIN` to your public URL (the domain is derived automatically):
 
 ```bash
-THERM_PRO_WEBAUTHN_RP_ID=tp25.yourdomain.com
 THERM_PRO_WEBAUTHN_ORIGIN=https://tp25.yourdomain.com
 ```
 

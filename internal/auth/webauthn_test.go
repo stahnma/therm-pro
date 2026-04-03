@@ -79,7 +79,7 @@ func TestWebAuthnHandler_Creation(t *testing.T) {
 	dir := t.TempDir()
 	credStore := NewCredentialStore(filepath.Join(dir, "passkeys.json"))
 
-	handler, err := NewWebAuthnHandler("Therm-Pro", "localhost", "http://localhost:8088", credStore, dir)
+	handler, err := NewWebAuthnHandler("Therm-Pro", "http://localhost:8088", credStore, dir)
 	if err != nil {
 		t.Fatalf("failed to create WebAuthn handler: %v", err)
 	}
@@ -92,7 +92,7 @@ func TestWebAuthnHandler_ValidateSessionIntegration(t *testing.T) {
 	dir := t.TempDir()
 	credStore := NewCredentialStore(filepath.Join(dir, "passkeys.json"))
 
-	handler, err := NewWebAuthnHandler("Therm-Pro", "localhost", "http://localhost:8088", credStore, dir)
+	handler, err := NewWebAuthnHandler("Therm-Pro", "http://localhost:8088", credStore, dir)
 	if err != nil {
 		t.Fatalf("failed to create WebAuthn handler: %v", err)
 	}

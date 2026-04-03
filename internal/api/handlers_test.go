@@ -212,7 +212,7 @@ func TestDiagnostics_Public(t *testing.T) {
 func TestRegister_Forbidden(t *testing.T) {
 	cfg := &config.Config{
 		Port: 8088, AllowedCIDR: "192.168.1.0/24", DataDir: t.TempDir(),
-		WebAuthnRPID: "localhost", WebAuthnOrigin: "http://localhost:8088",
+		WebAuthnOrigin: "http://localhost:8088",
 	}
 	srv := NewServer(cfg, "test")
 	mux := srv.Routes()
@@ -231,7 +231,7 @@ func TestResetSession_WithSessionCookie(t *testing.T) {
 	dir := t.TempDir()
 	cfg := &config.Config{
 		Port: 8088, AllowedCIDR: "192.168.1.0/24", DataDir: dir,
-		WebAuthnRPID: "localhost", WebAuthnOrigin: "http://localhost:8088",
+		WebAuthnOrigin: "http://localhost:8088",
 	}
 	srv := NewServer(cfg, "test")
 	mux := srv.Routes()

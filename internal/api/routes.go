@@ -29,7 +29,6 @@ func (s *Server) Routes() *http.ServeMux {
 
 	wh, err := auth.NewWebAuthnHandler(
 		"Therm-Pro",
-		s.config.WebAuthnRPID,
 		s.config.WebAuthnOrigin,
 		credStore,
 		s.config.DataDir,

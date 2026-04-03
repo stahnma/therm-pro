@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"net/url"
 	"sync"
 	"time"
 
@@ -42,7 +43,14 @@ type WebAuthnHandler struct {
 }
 
 // NewWebAuthnHandler creates a new WebAuthn handler.
-func NewWebAuthnHandler(rpName, rpID, rpOrigin string, credStore *CredentialStore, dataDir string) (*WebAuthnHandler, error) {
+// The RP ID (relying party identifier) is derived from the origin URL's hostname.
+func NewWebAuthnHandler(rpName, rpOrigin string, credStore *CredentialStore, dataDir string) (*WebAuthnHandler, error) {
+	u, err := url.Parse(rpOrigin)
+	if err != nil {
+		return nil, err
+	}
+	rpID := u.Hostname()
+
 	wa, err := webauthn.New(&webauthn.Config{
 		RPDisplayName: rpName,
 		RPID:          rpID,
