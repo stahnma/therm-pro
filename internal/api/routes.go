@@ -42,8 +42,7 @@ func (s *Server) Routes() *http.ServeMux {
 		sessionValidator = wh.ValidateSession
 	}
 
-	requireAuth := auth.RequireAuth(s.config.AllowedCIDR, s.config.TrustProxy, sessionValidator)
-	requireHome := auth.RequireHomeNetwork(s.config.AllowedCIDR, s.config.TrustProxy)
+	requireAuth := auth.RequireAuth(sessionValidator)
 
 	mux.HandleFunc("POST /api/data", s.handlePostData)
 	mux.HandleFunc("GET /api/session", s.handleGetSession)
@@ -53,7 +52,7 @@ func (s *Server) Routes() *http.ServeMux {
 	mux.HandleFunc("GET /api/firmware/latest", s.firmware.HandleLatest)
 	mux.HandleFunc("GET /api/firmware/download", s.firmware.HandleDownload)
 	mux.Handle("POST /api/firmware/upload", requireAuth(http.HandlerFunc(s.firmware.HandleUpload)))
-	mux.HandleFunc("GET /api/auth/status", auth.StatusHandler(s.config.AllowedCIDR, s.config.TrustProxy, sessionValidator))
+	mux.HandleFunc("GET /api/auth/status", auth.StatusHandler(sessionValidator, s.config.RegistrationPIN))
 	mux.HandleFunc("GET /api/docs", func(w http.ResponseWriter, r *http.Request) {
 		staticFS, _ := fs.Sub(web.StaticFiles, "static")
 		f, err := staticFS.Open("docs.html")
@@ -77,8 +76,8 @@ func (s *Server) Routes() *http.ServeMux {
 
 	// WebAuthn passkey routes
 	if webauthnHandler != nil {
-		mux.Handle("POST /auth/register/begin", requireHome(http.HandlerFunc(webauthnHandler.RegisterBegin)))
-		mux.Handle("POST /auth/register/finish", requireHome(http.HandlerFunc(webauthnHandler.RegisterFinish)))
+		mux.HandleFunc("POST /auth/register/begin", webauthnHandler.RegisterBegin)
+		mux.HandleFunc("POST /auth/register/finish", webauthnHandler.RegisterFinish)
 		mux.HandleFunc("POST /auth/login/begin", webauthnHandler.LoginBegin)
 		mux.HandleFunc("POST /auth/login/finish", webauthnHandler.LoginFinish)
 	}

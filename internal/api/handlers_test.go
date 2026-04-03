@@ -70,9 +70,8 @@ func TestPostAlerts(t *testing.T) {
 
 func TestResetSession_Unauthorized(t *testing.T) {
 	srv := NewServer(&config.Config{
-		Port:        8088,
-		AllowedCIDR: "192.168.1.0/24",
-		DataDir:     t.TempDir(),
+		Port:    8088,
+		DataDir: t.TempDir(),
 	}, "test")
 	mux := srv.Routes()
 
@@ -86,11 +85,10 @@ func TestResetSession_Unauthorized(t *testing.T) {
 	}
 }
 
-func TestResetSession_HomeNetwork(t *testing.T) {
+func TestResetSession_NoSession(t *testing.T) {
 	srv := NewServer(&config.Config{
-		Port:        8088,
-		AllowedCIDR: "192.168.1.0/24",
-		DataDir:     t.TempDir(),
+		Port:    8088,
+		DataDir: t.TempDir(),
 	}, "test")
 	mux := srv.Routes()
 
@@ -99,16 +97,15 @@ func TestResetSession_HomeNetwork(t *testing.T) {
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
 
-	if w.Code != http.StatusOK {
-		t.Errorf("expected 200, got %d", w.Code)
+	if w.Code != http.StatusUnauthorized {
+		t.Errorf("expected 401 without session cookie, got %d", w.Code)
 	}
 }
 
 func TestPostAlerts_Unauthorized(t *testing.T) {
 	srv := NewServer(&config.Config{
-		Port:        8088,
-		AllowedCIDR: "192.168.1.0/24",
-		DataDir:     t.TempDir(),
+		Port:    8088,
+		DataDir: t.TempDir(),
 	}, "test")
 	mux := srv.Routes()
 
@@ -125,9 +122,8 @@ func TestPostAlerts_Unauthorized(t *testing.T) {
 
 func TestAuthStatus_Endpoint(t *testing.T) {
 	srv := NewServer(&config.Config{
-		Port:        8088,
-		AllowedCIDR: "192.168.1.0/24",
-		DataDir:     t.TempDir(),
+		Port:    8088,
+		DataDir: t.TempDir(),
 	}, "test")
 	mux := srv.Routes()
 
@@ -140,13 +136,13 @@ func TestAuthStatus_Endpoint(t *testing.T) {
 		Role string `json:"role"`
 	}
 	json.NewDecoder(w.Body).Decode(&resp)
-	if resp.Role != "admin" {
-		t.Errorf("expected admin, got %s", resp.Role)
+	if resp.Role != "viewer" {
+		t.Errorf("expected viewer (no session), got %s", resp.Role)
 	}
 }
 
 func TestAuthStatus_Viewer(t *testing.T) {
-	cfg := &config.Config{Port: 8088, AllowedCIDR: "192.168.1.0/24", DataDir: t.TempDir()}
+	cfg := &config.Config{Port: 8088, DataDir: t.TempDir()}
 	srv := NewServer(cfg, "test")
 	mux := srv.Routes()
 
@@ -165,7 +161,7 @@ func TestAuthStatus_Viewer(t *testing.T) {
 }
 
 func TestFirmwareUpload_Unauthorized(t *testing.T) {
-	cfg := &config.Config{Port: 8088, AllowedCIDR: "192.168.1.0/24", DataDir: t.TempDir()}
+	cfg := &config.Config{Port: 8088, DataDir: t.TempDir()}
 	srv := NewServer(cfg, "test")
 	mux := srv.Routes()
 
@@ -180,7 +176,7 @@ func TestFirmwareUpload_Unauthorized(t *testing.T) {
 }
 
 func TestGetSession_Public(t *testing.T) {
-	cfg := &config.Config{Port: 8088, AllowedCIDR: "192.168.1.0/24", DataDir: t.TempDir()}
+	cfg := &config.Config{Port: 8088, DataDir: t.TempDir()}
 	srv := NewServer(cfg, "test")
 	mux := srv.Routes()
 
@@ -195,7 +191,7 @@ func TestGetSession_Public(t *testing.T) {
 }
 
 func TestDiagnostics_Public(t *testing.T) {
-	cfg := &config.Config{Port: 8088, AllowedCIDR: "192.168.1.0/24", DataDir: t.TempDir()}
+	cfg := &config.Config{Port: 8088, DataDir: t.TempDir()}
 	srv := NewServer(cfg, "test")
 	mux := srv.Routes()
 
@@ -209,14 +205,16 @@ func TestDiagnostics_Public(t *testing.T) {
 	}
 }
 
-func TestRegister_Forbidden(t *testing.T) {
+func TestRegister_NoPIN(t *testing.T) {
 	cfg := &config.Config{
-		Port: 8088, AllowedCIDR: "192.168.1.0/24", DataDir: t.TempDir(),
-		WebAuthnOrigin: "http://localhost:8088",
+		Port: 8088, DataDir: t.TempDir(),
+		WebAuthnOrigin:  "http://localhost:8088",
+		RegistrationPIN: "1234",
 	}
 	srv := NewServer(cfg, "test")
 	mux := srv.Routes()
 
+	// Request without PIN header should be rejected
 	req := httptest.NewRequest("POST", "/auth/register/begin", nil)
 	req.RemoteAddr = "8.8.8.8:12345"
 	w := httptest.NewRecorder()
@@ -230,7 +228,7 @@ func TestRegister_Forbidden(t *testing.T) {
 func TestResetSession_WithSessionCookie(t *testing.T) {
 	dir := t.TempDir()
 	cfg := &config.Config{
-		Port: 8088, AllowedCIDR: "192.168.1.0/24", DataDir: dir,
+		Port: 8088, DataDir: dir,
 		WebAuthnOrigin: "http://localhost:8088",
 	}
 	srv := NewServer(cfg, "test")
