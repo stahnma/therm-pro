@@ -9,11 +9,12 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/stahnma/therm-pro/internal/config"
 	"github.com/stahnma/therm-pro/internal/cook"
 )
 
 func TestWebSocketReceivesReading(t *testing.T) {
-	srv := NewServer(":0", "", "", "", "", "", "")
+	srv := NewServer(&config.Config{Port: 0, DataDir: t.TempDir()}, "test")
 	mux := srv.Routes()
 	ts := httptest.NewServer(mux)
 	defer ts.Close()

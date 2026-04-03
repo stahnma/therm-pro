@@ -7,11 +7,11 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"strconv"
 	"syscall"
 
 	"github.com/stahnma/therm-pro/internal/api"
+	"github.com/stahnma/therm-pro/internal/config"
 	"github.com/stahnma/therm-pro/internal/consul"
 )
 
@@ -19,39 +19,27 @@ import (
 var GitCommit = "dev"
 
 func main() {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8088"
+	cfg, err := config.Load("")
+	if err != nil {
+		log.Fatalf("failed to load config: %v", err)
 	}
 
-	slackWebhook := os.Getenv("THERM_PRO_SLACK_WEBHOOK")
-	slackSigningSecret := os.Getenv("THERM_PRO_SLACK_SIGNING_SECRET")
-	slackBotToken := os.Getenv("THERM_PRO_SLACK_BOT_TOKEN")
-
-	homeDir, _ := os.UserHomeDir()
-	dataDir := filepath.Join(homeDir, ".therm-pro")
-	sessionPath := filepath.Join(dataDir, "session.json")
-	firmwareDir := filepath.Join(dataDir, "firmware")
-
-	srv := api.NewServer(":"+port, slackWebhook, slackSigningSecret, slackBotToken, sessionPath, firmwareDir, GitCommit)
+	srv := api.NewServer(cfg, GitCommit)
 	mux := srv.Routes()
 
-	// Register with local Consul agent
-	portNum, _ := strconv.Atoi(port)
-	if err := consul.Register(portNum); err != nil {
+	if err := consul.Register(cfg.Port); err != nil {
 		log.Printf("WARNING: consul registration failed: %v", err)
 	}
 
-	httpSrv := &http.Server{Addr: ":" + port, Handler: mux}
+	httpSrv := &http.Server{Addr: ":" + strconv.Itoa(cfg.Port), Handler: mux}
 
 	go func() {
-		log.Printf("therm-pro-server listening on :%s", port)
+		log.Printf("therm-pro-server listening on :%d", cfg.Port)
 		if err := httpSrv.ListenAndServe(); err != http.ErrServerClosed {
 			log.Fatalf("server error: %v", err)
 		}
 	}()
 
-	// Wait for shutdown signal
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
