@@ -27,6 +27,7 @@ type Config struct {
 	Slack          SlackConfig `koanf:"slack"`
 	DataDir        string      `koanf:"data_dir"`
 	WebAuthnOrigin string      `koanf:"webauthn_origin"`
+	LogLevel       string      `koanf:"log_level"`
 }
 
 // Load reads config from defaults, then config.yaml in dataDir (if present),
@@ -41,6 +42,7 @@ func Load(dataDir string) (*Config, error) {
 		"allowed_cidr":   "192.168.1.0/24",
 		"trust_proxy":    false,
 		"webauthn_origin": "http://localhost:8088",
+		"log_level":       "info",
 	}, "."), nil)
 
 	// Resolve data dir

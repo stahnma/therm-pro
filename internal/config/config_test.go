@@ -20,6 +20,20 @@ func TestDefaults(t *testing.T) {
 	if cfg.TrustProxy {
 		t.Error("expected trust_proxy false by default")
 	}
+	if cfg.LogLevel != "info" {
+		t.Errorf("expected default log_level 'info', got %s", cfg.LogLevel)
+	}
+}
+
+func TestLogLevelEnvOverride(t *testing.T) {
+	t.Setenv("THERM_PRO_LOG_LEVEL", "debug")
+	cfg, err := Load("")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if cfg.LogLevel != "debug" {
+		t.Errorf("expected log_level 'debug', got %s", cfg.LogLevel)
+	}
 }
 
 func TestEnvOverride(t *testing.T) {
