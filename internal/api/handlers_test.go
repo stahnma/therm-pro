@@ -143,3 +143,85 @@ func TestAuthStatus_Endpoint(t *testing.T) {
 		t.Errorf("expected admin, got %s", resp.Role)
 	}
 }
+
+func TestAuthStatus_Viewer(t *testing.T) {
+	cfg := &config.Config{Port: 8088, AllowedCIDR: "192.168.1.0/24", DataDir: t.TempDir()}
+	srv := NewServer(cfg, "test")
+	mux := srv.Routes()
+
+	req := httptest.NewRequest("GET", "/api/auth/status", nil)
+	req.RemoteAddr = "8.8.8.8:12345"
+	w := httptest.NewRecorder()
+	mux.ServeHTTP(w, req)
+
+	var resp struct {
+		Role string `json:"role"`
+	}
+	json.NewDecoder(w.Body).Decode(&resp)
+	if resp.Role != "viewer" {
+		t.Errorf("expected viewer, got %s", resp.Role)
+	}
+}
+
+func TestFirmwareUpload_Unauthorized(t *testing.T) {
+	cfg := &config.Config{Port: 8088, AllowedCIDR: "192.168.1.0/24", DataDir: t.TempDir()}
+	srv := NewServer(cfg, "test")
+	mux := srv.Routes()
+
+	req := httptest.NewRequest("POST", "/api/firmware/upload", nil)
+	req.RemoteAddr = "8.8.8.8:12345"
+	w := httptest.NewRecorder()
+	mux.ServeHTTP(w, req)
+
+	if w.Code != http.StatusUnauthorized {
+		t.Errorf("expected 401, got %d", w.Code)
+	}
+}
+
+func TestGetSession_Public(t *testing.T) {
+	cfg := &config.Config{Port: 8088, AllowedCIDR: "192.168.1.0/24", DataDir: t.TempDir()}
+	srv := NewServer(cfg, "test")
+	mux := srv.Routes()
+
+	req := httptest.NewRequest("GET", "/api/session", nil)
+	req.RemoteAddr = "8.8.8.8:12345"
+	w := httptest.NewRecorder()
+	mux.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("expected 200, got %d", w.Code)
+	}
+}
+
+func TestDiagnostics_Public(t *testing.T) {
+	cfg := &config.Config{Port: 8088, AllowedCIDR: "192.168.1.0/24", DataDir: t.TempDir()}
+	srv := NewServer(cfg, "test")
+	mux := srv.Routes()
+
+	req := httptest.NewRequest("GET", "/diagnostics", nil)
+	req.RemoteAddr = "8.8.8.8:12345"
+	w := httptest.NewRecorder()
+	mux.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("expected 200, got %d", w.Code)
+	}
+}
+
+func TestRegister_Forbidden(t *testing.T) {
+	cfg := &config.Config{
+		Port: 8088, AllowedCIDR: "192.168.1.0/24", DataDir: t.TempDir(),
+		WebAuthnRPID: "localhost", WebAuthnOrigin: "http://localhost:8088",
+	}
+	srv := NewServer(cfg, "test")
+	mux := srv.Routes()
+
+	req := httptest.NewRequest("POST", "/auth/register/begin", nil)
+	req.RemoteAddr = "8.8.8.8:12345"
+	w := httptest.NewRecorder()
+	mux.ServeHTTP(w, req)
+
+	if w.Code != http.StatusUnauthorized {
+		t.Errorf("expected 401, got %d", w.Code)
+	}
+}
