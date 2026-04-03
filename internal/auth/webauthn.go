@@ -33,10 +33,11 @@ func jsonError(w http.ResponseWriter, msg string, code int) {
 // WebAuthnHandler manages WebAuthn registration and login ceremonies.
 // Single-user design: only one pending challenge at a time.
 type WebAuthnHandler struct {
-	wa            *webauthn.WebAuthn
-	credStore     *CredentialStore
-	sessionSecret []byte
-	log           *slog.Logger
+	wa              *webauthn.WebAuthn
+	credStore       *CredentialStore
+	sessionSecret   []byte
+	registrationPIN string
+	log             *slog.Logger
 
 	mu               sync.Mutex
 	pendingSession   *webauthn.SessionData
@@ -45,7 +46,7 @@ type WebAuthnHandler struct {
 
 // NewWebAuthnHandler creates a new WebAuthn handler.
 // The RP ID (relying party identifier) is derived from the origin URL's hostname.
-func NewWebAuthnHandler(rpName, rpOrigin string, credStore *CredentialStore, dataDir string) (*WebAuthnHandler, error) {
+func NewWebAuthnHandler(rpName, rpOrigin, registrationPIN string, credStore *CredentialStore, dataDir string) (*WebAuthnHandler, error) {
 	u, err := url.Parse(rpOrigin)
 	if err != nil {
 		return nil, err
@@ -67,10 +68,11 @@ func NewWebAuthnHandler(rpName, rpOrigin string, credStore *CredentialStore, dat
 	}
 
 	handler := &WebAuthnHandler{
-		wa:            wa,
-		credStore:     credStore,
-		sessionSecret: secret,
-		log:           slog.Default().With("component", "webauthn"),
+		wa:              wa,
+		credStore:       credStore,
+		sessionSecret:   secret,
+		registrationPIN: registrationPIN,
+		log:             slog.Default().With("component", "webauthn"),
 	}
 	handler.log.Info("webauthn configured", "rp_id", rpID, "rp_origin", rpOrigin)
 	return handler, nil
@@ -102,8 +104,29 @@ func (h *WebAuthnHandler) pendingValid() *webauthn.SessionData {
 	return h.pendingSession
 }
 
+// checkRegistrationPIN validates the X-Registration-PIN header against the
+// configured PIN. Returns true if the PIN is valid; otherwise it writes an
+// error response and returns false.
+func (h *WebAuthnHandler) checkRegistrationPIN(w http.ResponseWriter, r *http.Request) bool {
+	if h.registrationPIN == "" {
+		h.log.Warn("registration rejected: no registration PIN configured")
+		jsonError(w, "registration not available", http.StatusForbidden)
+		return false
+	}
+	pin := r.Header.Get("X-Registration-PIN")
+	if pin != h.registrationPIN {
+		h.log.Warn("registration rejected: invalid PIN", "remote_addr", r.RemoteAddr)
+		jsonError(w, "invalid registration PIN", http.StatusForbidden)
+		return false
+	}
+	return true
+}
+
 // RegisterBegin starts the WebAuthn registration ceremony.
 func (h *WebAuthnHandler) RegisterBegin(w http.ResponseWriter, r *http.Request) {
+	if !h.checkRegistrationPIN(w, r) {
+		return
+	}
 	h.log.Debug("register begin", "remote_addr", r.RemoteAddr)
 	user := h.user()
 
@@ -126,6 +149,9 @@ func (h *WebAuthnHandler) RegisterBegin(w http.ResponseWriter, r *http.Request) 
 
 // RegisterFinish completes the WebAuthn registration ceremony.
 func (h *WebAuthnHandler) RegisterFinish(w http.ResponseWriter, r *http.Request) {
+	if !h.checkRegistrationPIN(w, r) {
+		return
+	}
 	h.log.Debug("register finish", "remote_addr", r.RemoteAddr)
 	user := h.user()
 
