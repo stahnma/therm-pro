@@ -3,6 +3,10 @@
 **Issue:** #5
 **Date:** 2026-04-03
 
+## Revision: 2026-04-03
+
+The original three-tier access model (home network / passkey / public) was replaced with a two-tier model (authenticated / unauthenticated). The home network IP check (`allowed_cidr`, `trust_proxy`, `X-Forwarded-For`) was removed because it does not work through Cloudflare Tunnel — the forwarded IP is the client's public IP, not a LAN IP. Passkey registration is now gated by a configurable `registration_pin` instead of requiring home network access.
+
 ## Goal
 
 Public users get a read-only dashboard. Write operations (reset cook, set alerts/labels) require either being on the home network or authenticating with a passkey.
