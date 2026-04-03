@@ -20,11 +20,13 @@ type SlackConfig struct {
 }
 
 type Config struct {
-	Port        int         `koanf:"port"`
-	AllowedCIDR string      `koanf:"allowed_cidr"`
-	TrustProxy  bool        `koanf:"trust_proxy"`
-	Slack       SlackConfig `koanf:"slack"`
-	DataDir     string      `koanf:"data_dir"`
+	Port           int         `koanf:"port"`
+	AllowedCIDR    string      `koanf:"allowed_cidr"`
+	TrustProxy     bool        `koanf:"trust_proxy"`
+	Slack          SlackConfig `koanf:"slack"`
+	DataDir        string      `koanf:"data_dir"`
+	WebAuthnRPID   string      `koanf:"webauthn_rp_id"`
+	WebAuthnOrigin string      `koanf:"webauthn_origin"`
 }
 
 // Load reads config from defaults, then config.yaml in dataDir (if present),
@@ -35,9 +37,11 @@ func Load(dataDir string) (*Config, error) {
 
 	// 1. Defaults
 	k.Load(confmap.Provider(map[string]interface{}{
-		"port":         8088,
-		"allowed_cidr": "192.168.1.0/24",
-		"trust_proxy":  false,
+		"port":            8088,
+		"allowed_cidr":   "192.168.1.0/24",
+		"trust_proxy":    false,
+		"webauthn_rp_id": "localhost",
+		"webauthn_origin": "http://localhost:8088",
 	}, "."), nil)
 
 	// Resolve data dir
@@ -62,6 +66,10 @@ func Load(dataDir string) (*Config, error) {
 			return "slack.signing_secret"
 		case "SLACK_BOT_TOKEN":
 			return "slack.bot_token"
+		case "WEBAUTHN_RP_ID":
+			return "webauthn_rp_id"
+		case "WEBAUTHN_ORIGIN":
+			return "webauthn_origin"
 		default:
 			return strings.ToLower(key)
 		}

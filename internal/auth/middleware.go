@@ -38,6 +38,22 @@ func IsHomeNetwork(r *http.Request, cidr string, trustProxy bool) bool {
 	return subnet.Contains(ip)
 }
 
+// RequireHomeNetwork returns middleware that blocks requests not originating
+// from the configured home network CIDR. Session cookies are not accepted.
+func RequireHomeNetwork(cidr string, trustProxy bool) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if IsHomeNetwork(r, cidr, trustProxy) {
+				next.ServeHTTP(w, r)
+				return
+			}
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusUnauthorized)
+			json.NewEncoder(w).Encode(map[string]string{"error": "unauthorized"})
+		})
+	}
+}
+
 // RequireAuth returns middleware that blocks requests not from the home network
 // and not carrying a valid session.
 func RequireAuth(cidr string, trustProxy bool, validateSession SessionValidator) func(http.Handler) http.Handler {
