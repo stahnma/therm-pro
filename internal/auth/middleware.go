@@ -40,6 +40,7 @@ func IsHomeNetwork(r *http.Request, cidr string, trustProxy bool) bool {
 
 // RequireHomeNetwork returns middleware that blocks requests not originating
 // from the configured home network CIDR. Session cookies are not accepted.
+// Returns 403 Forbidden (not 401) since this is about location, not authentication.
 func RequireHomeNetwork(cidr string, trustProxy bool) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -48,8 +49,8 @@ func RequireHomeNetwork(cidr string, trustProxy bool) func(http.Handler) http.Ha
 				return
 			}
 			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(map[string]string{"error": "unauthorized"})
+			w.WriteHeader(http.StatusForbidden)
+			json.NewEncoder(w).Encode(map[string]string{"error": "forbidden"})
 		})
 	}
 }
