@@ -78,6 +78,38 @@ func TestEnvOverridesYAML(t *testing.T) {
 	}
 }
 
+func TestDotEnvFile(t *testing.T) {
+	dir := t.TempDir()
+	envContent := "THERM_PRO_ALLOWED_CIDR=10.0.0.0/8\nTHERM_PRO_SLACK_WEBHOOK=https://hooks.example.com/dotenv\n"
+	os.WriteFile(filepath.Join(dir, ".env"), []byte(envContent), 0644)
+
+	cfg, err := Load(dir)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if cfg.AllowedCIDR != "10.0.0.0/8" {
+		t.Errorf("expected 10.0.0.0/8 from .env, got %s", cfg.AllowedCIDR)
+	}
+	if cfg.Slack.Webhook != "https://hooks.example.com/dotenv" {
+		t.Errorf("expected slack webhook from .env, got %s", cfg.Slack.Webhook)
+	}
+}
+
+func TestEnvOverridesDotEnv(t *testing.T) {
+	dir := t.TempDir()
+	os.WriteFile(filepath.Join(dir, ".env"), []byte("THERM_PRO_PORT=5555\n"), 0644)
+	t.Setenv("THERM_PRO_PORT", "6666")
+
+	cfg, err := Load(dir)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	// Real env vars should override .env file values
+	if cfg.Port != 6666 {
+		t.Errorf("expected env var 6666 to override .env 5555, got %d", cfg.Port)
+	}
+}
+
 func TestLegacyPortEnv(t *testing.T) {
 	t.Setenv("PORT", "3000")
 	cfg, err := Load("")

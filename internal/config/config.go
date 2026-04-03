@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/joho/godotenv"
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/confmap"
 	"github.com/knadh/koanf/providers/env"
@@ -30,7 +31,7 @@ type Config struct {
 }
 
 // Load reads config from defaults, then config.yaml in dataDir (if present),
-// then environment variables.
+// then .env in dataDir (if present), then environment variables.
 // Pass empty dataDir to use ~/.therm-pro.
 func Load(dataDir string) (*Config, error) {
 	k := koanf.New(".")
@@ -56,7 +57,13 @@ func Load(dataDir string) (*Config, error) {
 		k.Load(file.Provider(yamlPath), yaml.Parser())
 	}
 
-	// 3. Environment variables (THERM_PRO_ prefix)
+	// 3. .env file (optional) — loads THERM_PRO_* vars into the process environment
+	envPath := filepath.Join(dataDir, ".env")
+	if _, err := os.Stat(envPath); err == nil {
+		godotenv.Load(envPath)
+	}
+
+	// 4. Environment variables (THERM_PRO_ prefix)
 	k.Load(env.Provider("THERM_PRO_", ".", func(s string) string {
 		key := s[len("THERM_PRO_"):]
 		switch key {
@@ -81,7 +88,7 @@ func Load(dataDir string) (*Config, error) {
 	}
 	cfg.DataDir = dataDir
 
-	// 4. Legacy PORT env var (backwards compat)
+	// 5. Legacy PORT env var (backwards compat)
 	if p := os.Getenv("PORT"); p != "" {
 		if pn, err := strconv.Atoi(p); err == nil {
 			cfg.Port = pn
