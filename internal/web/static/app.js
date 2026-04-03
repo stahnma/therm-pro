@@ -438,8 +438,14 @@ async function signIn() {
 }
 
 async function registerPasskey() {
+  const pin = prompt('Enter registration PIN:');
+  if (!pin) return;
+
   try {
-    const beginResp = await fetch('/auth/register/begin', { method: 'POST' });
+    const beginResp = await fetch('/auth/register/begin', {
+      method: 'POST',
+      headers: { 'X-Registration-PIN': pin },
+    });
     if (!beginResp.ok) {
       const errData = await beginResp.json().catch(() => ({}));
       alert('Registration not available: ' + (errData.error || beginResp.statusText));
@@ -460,7 +466,10 @@ async function registerPasskey() {
 
     const finishResp = await fetch('/auth/register/finish', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Registration-PIN': pin,
+      },
       body: JSON.stringify({
         id: credential.id,
         rawId: bufferToBase64url(credential.rawId),
@@ -474,6 +483,7 @@ async function registerPasskey() {
 
     if (finishResp.ok) {
       alert('Passkey registered!');
+      location.reload();
     } else {
       const errData = await finishResp.json().catch(() => ({}));
       alert('Registration failed: ' + (errData.error || finishResp.statusText));
