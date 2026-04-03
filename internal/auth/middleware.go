@@ -1,45 +1,45 @@
 package auth
 
 import (
+	"encoding/json"
 	"net"
 	"net/http"
 	"strings"
 )
 
-// IsHomeNetwork checks if the request originates from the allowed CIDR range.
+// SessionValidator checks whether the current request carries a valid session.
+type SessionValidator func(r *http.Request) bool
+
+// IsHomeNetwork returns true when the request originates from the given CIDR.
+// When trustProxy is true the first address in X-Forwarded-For is used instead
+// of RemoteAddr.
 func IsHomeNetwork(r *http.Request, cidr string, trustProxy bool) bool {
-	_, network, err := net.ParseCIDR(cidr)
+	_, subnet, err := net.ParseCIDR(cidr)
 	if err != nil {
 		return false
 	}
 
-	var ipStr string
+	ipStr := r.RemoteAddr
 	if trustProxy {
 		if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
 			ipStr = strings.TrimSpace(strings.Split(xff, ",")[0])
 		}
 	}
 
-	if ipStr == "" {
-		host, _, err := net.SplitHostPort(r.RemoteAddr)
-		if err != nil {
-			return false
-		}
-		ipStr = host
+	host, _, err := net.SplitHostPort(ipStr)
+	if err != nil {
+		host = ipStr
 	}
 
-	ip := net.ParseIP(ipStr)
+	ip := net.ParseIP(host)
 	if ip == nil {
 		return false
 	}
-	return network.Contains(ip)
+	return subnet.Contains(ip)
 }
 
-// SessionValidator is a function that checks if a request has a valid session cookie.
-type SessionValidator func(r *http.Request) bool
-
-// RequireAuth returns middleware that allows requests from the home network
-// or with a valid session cookie. Returns 401 otherwise.
+// RequireAuth returns middleware that blocks requests not from the home network
+// and not carrying a valid session.
 func RequireAuth(cidr string, trustProxy bool, validateSession SessionValidator) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -51,20 +51,9 @@ func RequireAuth(cidr string, trustProxy bool, validateSession SessionValidator)
 				next.ServeHTTP(w, r)
 				return
 			}
-			http.Error(w, "unauthorized", http.StatusUnauthorized)
-		})
-	}
-}
-
-// RequireHomeNetwork returns middleware that only allows requests from the home network.
-func RequireHomeNetwork(cidr string, trustProxy bool) func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if IsHomeNetwork(r, cidr, trustProxy) {
-				next.ServeHTTP(w, r)
-				return
-			}
-			http.Error(w, "forbidden", http.StatusForbidden)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusUnauthorized)
+			json.NewEncoder(w).Encode(map[string]string{"error": "unauthorized"})
 		})
 	}
 }
