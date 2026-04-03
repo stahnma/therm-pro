@@ -66,5 +66,20 @@
       </form>
     </div>
   </div>
+
+  <!-- PIN Modal -->
+  <div id="pin-overlay" class="modal-overlay hidden">
+    <div class="modal">
+      <h2>Enter Registration PIN</h2>
+      <form id="pin-form" autocomplete="off">
+        <label for="pin-input">PIN</label>
+        <input type="password" id="pin-input" inputmode="numeric" maxlength="20" required>
+        <div class="modal-buttons">
+          <button type="button" id="pin-cancel" class="btn btn-cancel">Cancel</button>
+          <button type="submit" class="btn btn-save">Register</button>
+        </div>
+      </form>
+    </div>
+  </div>
 </body>
 </html>

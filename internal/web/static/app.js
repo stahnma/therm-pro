@@ -437,9 +437,26 @@ async function signIn() {
   }
 }
 
-async function registerPasskey() {
-  const pin = prompt('Enter registration PIN:');
-  if (!pin) return;
+// Show PIN modal when Register Passkey is clicked
+function registerPasskey() {
+  const overlay = document.getElementById('pin-overlay');
+  const input = document.getElementById('pin-input');
+  overlay.classList.remove('hidden');
+  input.value = '';
+  input.focus();
+}
+
+// Cancel PIN modal
+document.getElementById('pin-cancel').addEventListener('click', () => {
+  document.getElementById('pin-overlay').classList.add('hidden');
+});
+
+// Submit PIN and start registration
+document.getElementById('pin-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const pin = document.getElementById('pin-input').value;
+  const overlay = document.getElementById('pin-overlay');
+  overlay.classList.add('hidden');
 
   try {
     const beginResp = await fetch('/auth/register/begin', {
@@ -492,7 +509,7 @@ async function registerPasskey() {
     console.error('Register error:', err);
     alert('Registration failed: ' + err.message);
   }
-}
+});
 
 function base64urlToBuffer(base64url) {
   const base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
