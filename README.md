@@ -73,6 +73,7 @@ The server listens on port 8088 by default and stores session data in `~/.therm-
 | `THERM_PRO_ALLOWED_CIDR` | `192.168.1.0/24` | CIDR range for home network (full access without auth) |
 | `THERM_PRO_TRUST_PROXY` | `false` | Trust `X-Forwarded-For` header (set `true` behind a reverse proxy) |
 | `THERM_PRO_WEBAUTHN_ORIGIN` | `http://localhost:8088` | WebAuthn origin URL (set to your public URL for passkey auth; domain is derived automatically) |
+| `THERM_PRO_LOG_LEVEL` | `info` | Log verbosity: `debug`, `info`, `warn`, `error` |
 | `THERM_PRO_SLACK_WEBHOOK` | _(empty)_ | Slack incoming webhook URL for alerts |
 | `THERM_PRO_SLACK_SIGNING_SECRET` | _(empty)_ | Slack app signing secret (for `/tp25` slash command) |
 | `THERM_PRO_SLACK_BOT_TOKEN` | _(empty)_ | Slack bot token (for `/tp25` slash command) |
@@ -84,6 +85,7 @@ port: 8088
 allowed_cidr: "192.168.1.0/24"
 trust_proxy: false
 webauthn_origin: "http://localhost:8088"
+log_level: "info"
 
 slack:
   webhook: ""
@@ -323,6 +325,26 @@ The top-level `status` is `"ok"` when everything is healthy, or `"degraded"` whe
 | ESP32 stopped sending data (>30s) | `esp32.status: "stale"` with `data_age` showing how long |
 | ESP32 can't find the TP25 | `esp32.ble_connected: false`, `esp32.status: "ble_disconnected"` |
 | Firmware version mismatch | Compare `server_firmware_version` vs `esp32.firmware_version` |
+
+</details>
+
+<details>
+<summary>Logging</summary>
+
+The server uses structured logging (`log/slog`) written to stderr. Set `THERM_PRO_LOG_LEVEL` to control verbosity:
+
+```bash
+# Debug logging — shows HTTP requests, session validation, network checks
+THERM_PRO_LOG_LEVEL=debug ./bin/therm-pro-server
+
+# Default — server lifecycle, auth events, alerts
+THERM_PRO_LOG_LEVEL=info ./bin/therm-pro-server
+
+# Quiet — only warnings and errors
+THERM_PRO_LOG_LEVEL=warn ./bin/therm-pro-server
+```
+
+Debug mode is especially useful for diagnosing WebAuthn passkey failures through Cloudflare tunnels — it logs each step of the login/registration ceremony with remote address and error details.
 
 </details>
 
