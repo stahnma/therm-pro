@@ -2,14 +2,15 @@ package auth
 
 import (
 	"encoding/json"
+	"net/http"
 	"net/http/httptest"
 	"testing"
 )
 
-func TestAuthStatus_HomeNetwork(t *testing.T) {
-	handler := StatusHandler("192.168.1.0/24", false, nil)
+func TestAuthStatus_Authenticated(t *testing.T) {
+	validator := func(r *http.Request) bool { return true }
+	handler := StatusHandler(validator)
 	r := httptest.NewRequest("GET", "/api/auth/status", nil)
-	r.RemoteAddr = "192.168.1.50:12345"
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, r)
 
@@ -22,10 +23,10 @@ func TestAuthStatus_HomeNetwork(t *testing.T) {
 	}
 }
 
-func TestAuthStatus_Public(t *testing.T) {
-	handler := StatusHandler("192.168.1.0/24", false, nil)
+func TestAuthStatus_Unauthenticated(t *testing.T) {
+	validator := func(r *http.Request) bool { return false }
+	handler := StatusHandler(validator)
 	r := httptest.NewRequest("GET", "/api/auth/status", nil)
-	r.RemoteAddr = "8.8.8.8:12345"
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, r)
 
@@ -38,10 +39,9 @@ func TestAuthStatus_Public(t *testing.T) {
 	}
 }
 
-func TestAuthStatus_HomeNetworkCanRegister(t *testing.T) {
-	handler := StatusHandler("192.168.1.0/24", false, nil)
+func TestAuthStatus_CanRegisterFalse(t *testing.T) {
+	handler := StatusHandler(nil)
 	r := httptest.NewRequest("GET", "/api/auth/status", nil)
-	r.RemoteAddr = "192.168.1.50:12345"
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, r)
 
@@ -50,7 +50,7 @@ func TestAuthStatus_HomeNetworkCanRegister(t *testing.T) {
 		CanRegister bool   `json:"can_register"`
 	}
 	json.NewDecoder(w.Body).Decode(&resp)
-	if !resp.CanRegister {
-		t.Error("expected can_register true on home network")
+	if resp.CanRegister {
+		t.Error("expected can_register false")
 	}
 }

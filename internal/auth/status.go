@@ -12,20 +12,19 @@ type StatusResponse struct {
 }
 
 // StatusHandler returns an http.HandlerFunc that reports the caller's access level.
-func StatusHandler(cidr string, trustProxy bool, validateSession SessionValidator) http.HandlerFunc {
+func StatusHandler(validateSession SessionValidator) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		isHome := IsHomeNetwork(r, cidr, trustProxy)
 		isAuthed := validateSession != nil && validateSession(r)
 
 		resp := StatusResponse{
 			Role:        "viewer",
-			CanRegister: isHome,
+			CanRegister: false,
 		}
-		if isHome || isAuthed {
+		if isAuthed {
 			resp.Role = "admin"
 		}
 
-		slog.Debug("auth status", "role", resp.Role, "is_home", isHome, "is_authed", isAuthed, "remote_addr", r.RemoteAddr)
+		slog.Debug("auth status", "role", resp.Role, "is_authed", isAuthed, "remote_addr", r.RemoteAddr)
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(resp)
