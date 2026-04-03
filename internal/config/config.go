@@ -21,13 +21,12 @@ type SlackConfig struct {
 }
 
 type Config struct {
-	Port           int         `koanf:"port"`
-	AllowedCIDR    string      `koanf:"allowed_cidr"`
-	TrustProxy     bool        `koanf:"trust_proxy"`
-	Slack          SlackConfig `koanf:"slack"`
-	DataDir        string      `koanf:"data_dir"`
-	WebAuthnOrigin string      `koanf:"webauthn_origin"`
-	LogLevel       string      `koanf:"log_level"`
+	Port            int         `koanf:"port"`
+	RegistrationPIN string      `koanf:"registration_pin"`
+	Slack           SlackConfig `koanf:"slack"`
+	DataDir         string      `koanf:"data_dir"`
+	WebAuthnOrigin  string      `koanf:"webauthn_origin"`
+	LogLevel        string      `koanf:"log_level"`
 }
 
 // Load reads config from defaults, then config.yaml in dataDir (if present),
@@ -39,8 +38,6 @@ func Load(dataDir string) (*Config, error) {
 	// 1. Defaults
 	k.Load(confmap.Provider(map[string]interface{}{
 		"port":            8088,
-		"allowed_cidr":   "192.168.1.0/24",
-		"trust_proxy":    false,
 		"webauthn_origin": "http://localhost:8088",
 		"log_level":       "info",
 	}, "."), nil)
