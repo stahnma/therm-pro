@@ -437,27 +437,25 @@ async function signIn() {
   }
 }
 
-// Pre-fetch WebAuthn challenge when modal opens so it's ready by submit time.
-// WebKit (all iOS browsers) requires credentials.create() to run synchronously
-// from a user gesture — any await before it consumes the activation.
-let pendingRegistration = null;
+// Pre-fetch WebAuthn challenge when modal opens, store as plain object.
+// WebKit (all iOS browsers) requires credentials.create() to be called
+// synchronously from a user gesture — even awaiting a resolved promise
+// breaks the activation chain.
+let cachedRegOptions = null;
 
 // Show PIN modal and pre-fetch challenge
 function registerPasskey() {
   const overlay = document.getElementById('pin-overlay');
   const input = document.getElementById('pin-input');
+  cachedRegOptions = null;
   overlay.classList.remove('hidden');
   input.value = '';
   input.focus();
 
-  // Fetch challenge in the background while user types PIN
-  pendingRegistration = fetch('/auth/register/begin', { method: 'POST' })
-    .then(async (resp) => {
-      if (!resp.ok) {
-        const errData = await resp.json().catch(() => ({}));
-        throw new Error(errData.error || resp.statusText);
-      }
-      const options = await resp.json();
+  // Fetch and cache challenge while user types PIN
+  fetch('/auth/register/begin', { method: 'POST' })
+    .then(resp => resp.ok ? resp.json() : resp.json().then(e => Promise.reject(e.error || resp.statusText)))
+    .then(options => {
       options.publicKey.challenge = base64urlToBuffer(options.publicKey.challenge);
       options.publicKey.user.id = base64urlToBuffer(options.publicKey.user.id);
       if (options.publicKey.excludeCredentials) {
@@ -466,66 +464,67 @@ function registerPasskey() {
           id: base64urlToBuffer(c.id),
         }));
       }
-      return options;
+      cachedRegOptions = options;
     })
-    .catch((err) => { pendingRegistration = null; throw err; });
+    .catch(err => console.error('Failed to fetch registration options:', err));
 }
 
 // Cancel PIN modal
 document.getElementById('pin-cancel').addEventListener('click', () => {
   document.getElementById('pin-overlay').classList.add('hidden');
-  pendingRegistration = null;
+  cachedRegOptions = null;
 });
 
-// Submit PIN and complete registration
-document.getElementById('pin-form').addEventListener('submit', async (e) => {
+// Submit PIN and complete registration.
+// No async/await before credentials.create() — called synchronously from
+// the submit gesture to satisfy WebKit's user activation requirement.
+document.getElementById('pin-form').addEventListener('submit', (e) => {
   e.preventDefault();
   const pin = document.getElementById('pin-input').value;
   const overlay = document.getElementById('pin-overlay');
 
-  if (!pendingRegistration) {
+  if (!cachedRegOptions) {
     overlay.classList.add('hidden');
-    alert('Registration not available. Please try again.');
+    alert('Registration not ready. Please close and try again.');
     return;
   }
 
-  try {
-    // Options were pre-fetched when modal opened — should already be resolved
-    const options = await pendingRegistration;
-
-    // credentials.create() runs immediately from the submit gesture
-    const credential = await navigator.credentials.create({ publicKey: options.publicKey });
-    overlay.classList.add('hidden');
-
-    const finishResp = await fetch('/auth/register/finish', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Registration-PIN': pin,
-      },
-      body: JSON.stringify({
-        id: credential.id,
-        rawId: bufferToBase64url(credential.rawId),
-        type: credential.type,
-        response: {
-          attestationObject: bufferToBase64url(credential.response.attestationObject),
-          clientDataJSON: bufferToBase64url(credential.response.clientDataJSON),
+  // Call credentials.create() synchronously — no await before this
+  navigator.credentials.create({ publicKey: cachedRegOptions.publicKey })
+    .then(credential => {
+      overlay.classList.add('hidden');
+      return fetch('/auth/register/finish', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Registration-PIN': pin,
         },
-      }),
+        body: JSON.stringify({
+          id: credential.id,
+          rawId: bufferToBase64url(credential.rawId),
+          type: credential.type,
+          response: {
+            attestationObject: bufferToBase64url(credential.response.attestationObject),
+            clientDataJSON: bufferToBase64url(credential.response.clientDataJSON),
+          },
+        }),
+      });
+    })
+    .then(resp => {
+      if (resp.ok) {
+        alert('Passkey registered!');
+        location.reload();
+      } else {
+        return resp.json().catch(() => ({})).then(errData => {
+          alert('Registration failed: ' + (errData.error || resp.statusText));
+        });
+      }
+    })
+    .catch(err => {
+      overlay.classList.add('hidden');
+      console.error('Register error:', err);
+      alert('Registration failed: ' + err.message);
     });
-
-    if (finishResp.ok) {
-      alert('Passkey registered!');
-      location.reload();
-    } else {
-      const errData = await finishResp.json().catch(() => ({}));
-      alert('Registration failed: ' + (errData.error || finishResp.statusText));
-    }
-  } catch (err) {
-    overlay.classList.add('hidden');
-    console.error('Register error:', err);
-    alert('Registration failed: ' + err.message);
-  }
 });
 
 function base64urlToBuffer(base64url) {
