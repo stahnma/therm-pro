@@ -437,47 +437,63 @@ async function signIn() {
   }
 }
 
-// Show PIN modal when Register Passkey is clicked
+// Pre-fetch WebAuthn challenge when modal opens so it's ready by submit time.
+// WebKit (all iOS browsers) requires credentials.create() to run synchronously
+// from a user gesture — any await before it consumes the activation.
+let pendingRegistration = null;
+
+// Show PIN modal and pre-fetch challenge
 function registerPasskey() {
   const overlay = document.getElementById('pin-overlay');
   const input = document.getElementById('pin-input');
   overlay.classList.remove('hidden');
   input.value = '';
   input.focus();
+
+  // Fetch challenge in the background while user types PIN
+  pendingRegistration = fetch('/auth/register/begin', { method: 'POST' })
+    .then(async (resp) => {
+      if (!resp.ok) {
+        const errData = await resp.json().catch(() => ({}));
+        throw new Error(errData.error || resp.statusText);
+      }
+      const options = await resp.json();
+      options.publicKey.challenge = base64urlToBuffer(options.publicKey.challenge);
+      options.publicKey.user.id = base64urlToBuffer(options.publicKey.user.id);
+      if (options.publicKey.excludeCredentials) {
+        options.publicKey.excludeCredentials = options.publicKey.excludeCredentials.map(c => ({
+          ...c,
+          id: base64urlToBuffer(c.id),
+        }));
+      }
+      return options;
+    })
+    .catch((err) => { pendingRegistration = null; throw err; });
 }
 
 // Cancel PIN modal
 document.getElementById('pin-cancel').addEventListener('click', () => {
   document.getElementById('pin-overlay').classList.add('hidden');
+  pendingRegistration = null;
 });
 
-// Submit PIN and start registration
+// Submit PIN and complete registration
 document.getElementById('pin-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const pin = document.getElementById('pin-input').value;
   const overlay = document.getElementById('pin-overlay');
 
-  // Don't hide the modal yet — hiding it can defocus the document on mobile
-  // Chrome, which causes credentials.create() to fail with "not focused".
+  if (!pendingRegistration) {
+    overlay.classList.add('hidden');
+    alert('Registration not available. Please try again.');
+    return;
+  }
+
   try {
-    const beginResp = await fetch('/auth/register/begin', { method: 'POST' });
-    if (!beginResp.ok) {
-      overlay.classList.add('hidden');
-      const errData = await beginResp.json().catch(() => ({}));
-      alert('Registration not available: ' + (errData.error || beginResp.statusText));
-      return;
-    }
-    const options = await beginResp.json();
+    // Options were pre-fetched when modal opened — should already be resolved
+    const options = await pendingRegistration;
 
-    options.publicKey.challenge = base64urlToBuffer(options.publicKey.challenge);
-    options.publicKey.user.id = base64urlToBuffer(options.publicKey.user.id);
-    if (options.publicKey.excludeCredentials) {
-      options.publicKey.excludeCredentials = options.publicKey.excludeCredentials.map(c => ({
-        ...c,
-        id: base64urlToBuffer(c.id),
-      }));
-    }
-
+    // credentials.create() runs immediately from the submit gesture
     const credential = await navigator.credentials.create({ publicKey: options.publicKey });
     overlay.classList.add('hidden');
 
