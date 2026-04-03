@@ -20,22 +20,18 @@ func (u *thermProUser) WebAuthnName() string         { return "therm-pro" }
 func (u *thermProUser) WebAuthnDisplayName() string  { return "Therm-Pro User" }
 func (u *thermProUser) WebAuthnCredentials() []webauthn.Credential { return u.credentials }
 
-// challengeEntry holds in-flight registration/login session data with a TTL.
-type challengeEntry struct {
-	session   *webauthn.SessionData
-	createdAt time.Time
-}
-
 const challengeTTL = 5 * time.Minute
 
 // WebAuthnHandler manages WebAuthn registration and login ceremonies.
+// Single-user design: only one pending challenge at a time.
 type WebAuthnHandler struct {
 	wa            *webauthn.WebAuthn
 	credStore     *CredentialStore
 	sessionSecret []byte
 
-	mu         sync.Mutex
-	challenges map[string]challengeEntry // keyed by challenge string
+	mu               sync.Mutex
+	pendingSession   *webauthn.SessionData
+	pendingCreatedAt time.Time
 }
 
 // NewWebAuthnHandler creates a new WebAuthn handler.
@@ -58,7 +54,6 @@ func NewWebAuthnHandler(rpName, rpID, rpOrigin string, credStore *CredentialStor
 		wa:            wa,
 		credStore:     credStore,
 		sessionSecret: secret,
-		challenges:    make(map[string]challengeEntry),
 	}, nil
 }
 
@@ -75,14 +70,17 @@ func (h *WebAuthnHandler) user() *thermProUser {
 	return &thermProUser{credentials: creds}
 }
 
-// cleanExpiredChallenges removes old challenge entries. Must be called with mu held.
-func (h *WebAuthnHandler) cleanExpiredChallenges() {
-	now := time.Now()
-	for k, v := range h.challenges {
-		if now.Sub(v.createdAt) > challengeTTL {
-			delete(h.challenges, k)
-		}
+// pendingValid returns the pending session if it exists and has not expired.
+// Must be called with mu held.
+func (h *WebAuthnHandler) pendingValid() *webauthn.SessionData {
+	if h.pendingSession == nil {
+		return nil
 	}
+	if time.Since(h.pendingCreatedAt) > challengeTTL {
+		h.pendingSession = nil
+		return nil
+	}
+	return h.pendingSession
 }
 
 // RegisterBegin starts the WebAuthn registration ceremony.
@@ -97,11 +95,8 @@ func (h *WebAuthnHandler) RegisterBegin(w http.ResponseWriter, r *http.Request) 
 	}
 
 	h.mu.Lock()
-	h.cleanExpiredChallenges()
-	h.challenges[session.Challenge] = challengeEntry{
-		session:   session,
-		createdAt: time.Now(),
-	}
+	h.pendingSession = session
+	h.pendingCreatedAt = time.Now()
 	h.mu.Unlock()
 
 	w.Header().Set("Content-Type", "application/json")
@@ -112,16 +107,8 @@ func (h *WebAuthnHandler) RegisterBegin(w http.ResponseWriter, r *http.Request) 
 func (h *WebAuthnHandler) RegisterFinish(w http.ResponseWriter, r *http.Request) {
 	user := h.user()
 
-	// Find the session — we need to try all pending registration challenges.
 	h.mu.Lock()
-	h.cleanExpiredChallenges()
-	var matchedKey string
-	var sessionData *webauthn.SessionData
-	for k, v := range h.challenges {
-		matchedKey = k
-		sessionData = v.session
-		break // single-user: use the most recent challenge
-	}
+	sessionData := h.pendingValid()
 	h.mu.Unlock()
 
 	if sessionData == nil {
@@ -137,7 +124,7 @@ func (h *WebAuthnHandler) RegisterFinish(w http.ResponseWriter, r *http.Request)
 	}
 
 	h.mu.Lock()
-	delete(h.challenges, matchedKey)
+	h.pendingSession = nil
 	h.mu.Unlock()
 
 	h.credStore.Add(StoredCredential{
@@ -171,11 +158,8 @@ func (h *WebAuthnHandler) LoginBegin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.mu.Lock()
-	h.cleanExpiredChallenges()
-	h.challenges[session.Challenge] = challengeEntry{
-		session:   session,
-		createdAt: time.Now(),
-	}
+	h.pendingSession = session
+	h.pendingCreatedAt = time.Now()
 	h.mu.Unlock()
 
 	w.Header().Set("Content-Type", "application/json")
@@ -187,14 +171,7 @@ func (h *WebAuthnHandler) LoginFinish(w http.ResponseWriter, r *http.Request) {
 	user := h.user()
 
 	h.mu.Lock()
-	h.cleanExpiredChallenges()
-	var matchedKey string
-	var sessionData *webauthn.SessionData
-	for k, v := range h.challenges {
-		matchedKey = k
-		sessionData = v.session
-		break
-	}
+	sessionData := h.pendingValid()
 	h.mu.Unlock()
 
 	if sessionData == nil {
@@ -210,7 +187,7 @@ func (h *WebAuthnHandler) LoginFinish(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.mu.Lock()
-	delete(h.challenges, matchedKey)
+	h.pendingSession = nil
 	h.mu.Unlock()
 
 	SetSessionCookie(w, h.sessionSecret)

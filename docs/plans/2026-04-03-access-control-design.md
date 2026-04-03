@@ -17,8 +17,9 @@ Three tiers, evaluated in order:
 
 ### Protected endpoints
 
-- `POST /api/reset` — reset cook
-- `POST /api/probe/:id` — set labels/alert thresholds
+- `POST /api/session/reset` — reset cook
+- `POST /api/alerts` — set labels/alert thresholds
+- `POST /api/firmware/upload` — upload firmware
 - `POST /auth/register/begin` and `/auth/register/finish` — passkey registration (home network only)
 
 ### Public endpoints (unchanged)
@@ -44,6 +45,8 @@ Example `config.yaml`:
 port: 8088
 allowed_cidr: "192.168.1.0/24"
 trust_proxy: false
+webauthn_rp_id: "localhost"        # set to your domain when behind a reverse proxy
+webauthn_origin: "http://localhost:8088"  # set to your public URL for passkey auth
 
 slack:
   webhook: ""

@@ -79,3 +79,52 @@ func TestRequireAuth_Denied(t *testing.T) {
 		t.Errorf("expected 401, got %d", w.Code)
 	}
 }
+
+func TestRequireAuth_ValidSession(t *testing.T) {
+	validator := func(r *http.Request) bool {
+		return r.Header.Get("X-Test-Auth") == "valid"
+	}
+	handler := RequireAuth("192.168.1.0/24", false, validator)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	r := httptest.NewRequest("POST", "/api/session/reset", nil)
+	r.RemoteAddr = "8.8.8.8:12345"
+	r.Header.Set("X-Test-Auth", "valid")
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, r)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("expected 200 with valid session, got %d", w.Code)
+	}
+}
+
+func TestRequireHomeNetwork_Allowed(t *testing.T) {
+	handler := RequireHomeNetwork("192.168.1.0/24", false)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	r := httptest.NewRequest("POST", "/auth/register/begin", nil)
+	r.RemoteAddr = "192.168.1.50:12345"
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, r)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("expected 200, got %d", w.Code)
+	}
+}
+
+func TestRequireHomeNetwork_Forbidden(t *testing.T) {
+	handler := RequireHomeNetwork("192.168.1.0/24", false)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	r := httptest.NewRequest("POST", "/auth/register/begin", nil)
+	r.RemoteAddr = "8.8.8.8:12345"
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, r)
+
+	if w.Code != http.StatusForbidden {
+		t.Errorf("expected 403, got %d", w.Code)
+	}
+}

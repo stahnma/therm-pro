@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/stahnma/therm-pro/internal/auth"
 	"github.com/stahnma/therm-pro/internal/config"
 	"github.com/stahnma/therm-pro/internal/cook"
 )
@@ -223,5 +224,39 @@ func TestRegister_Forbidden(t *testing.T) {
 
 	if w.Code != http.StatusForbidden {
 		t.Errorf("expected 403, got %d", w.Code)
+	}
+}
+
+func TestResetSession_WithSessionCookie(t *testing.T) {
+	dir := t.TempDir()
+	cfg := &config.Config{
+		Port: 8088, AllowedCIDR: "192.168.1.0/24", DataDir: dir,
+		WebAuthnRPID: "localhost", WebAuthnOrigin: "http://localhost:8088",
+	}
+	srv := NewServer(cfg, "test")
+	mux := srv.Routes()
+
+	// Create a valid session cookie using the server's session secret
+	secret, err := auth.LoadOrCreateSessionSecret(dir)
+	if err != nil {
+		t.Fatalf("failed to load session secret: %v", err)
+	}
+
+	// Get the cookie by setting it on a recorder
+	rec := httptest.NewRecorder()
+	auth.SetSessionCookie(rec, secret)
+	cookies := rec.Result().Cookies()
+
+	// Now use that cookie on a request from outside the home network
+	req := httptest.NewRequest("POST", "/api/session/reset", nil)
+	req.RemoteAddr = "8.8.8.8:12345"
+	for _, c := range cookies {
+		req.AddCookie(c)
+	}
+	w := httptest.NewRecorder()
+	mux.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("expected 200 with valid session cookie, got %d", w.Code)
 	}
 }

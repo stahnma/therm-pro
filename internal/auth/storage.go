@@ -45,8 +45,8 @@ func (s *CredentialStore) Load() error {
 
 // Save writes the current credentials to disk.
 func (s *CredentialStore) Save() error {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
 	data, err := json.MarshalIndent(s.creds, "", "  ")
 	if err != nil {
@@ -65,9 +65,9 @@ func (s *CredentialStore) Add(cred StoredCredential) {
 	s.creds = append(s.creds, cred)
 }
 
-// Credentials returns all stored credentials.
+// Credentials returns a copy of all stored credentials.
 func (s *CredentialStore) Credentials() []StoredCredential {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	return s.creds
+	return append([]StoredCredential(nil), s.creds...)
 }
