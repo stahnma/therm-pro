@@ -456,13 +456,13 @@ document.getElementById('pin-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const pin = document.getElementById('pin-input').value;
   const overlay = document.getElementById('pin-overlay');
-  overlay.classList.add('hidden');
 
+  // Don't hide the modal yet — hiding it can defocus the document on mobile
+  // Chrome, which causes credentials.create() to fail with "not focused".
   try {
-    // No PIN on begin — checked on finish only. Keeps credentials.create()
-    // close to the user gesture so mobile browsers allow it.
     const beginResp = await fetch('/auth/register/begin', { method: 'POST' });
     if (!beginResp.ok) {
+      overlay.classList.add('hidden');
       const errData = await beginResp.json().catch(() => ({}));
       alert('Registration not available: ' + (errData.error || beginResp.statusText));
       return;
@@ -479,6 +479,7 @@ document.getElementById('pin-form').addEventListener('submit', async (e) => {
     }
 
     const credential = await navigator.credentials.create({ publicKey: options.publicKey });
+    overlay.classList.add('hidden');
 
     const finishResp = await fetch('/auth/register/finish', {
       method: 'POST',
@@ -505,6 +506,7 @@ document.getElementById('pin-form').addEventListener('submit', async (e) => {
       alert('Registration failed: ' + (errData.error || finishResp.statusText));
     }
   } catch (err) {
+    overlay.classList.add('hidden');
     console.error('Register error:', err);
     alert('Registration failed: ' + err.message);
   }
