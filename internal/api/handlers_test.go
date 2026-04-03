@@ -245,7 +245,7 @@ func TestResetSession_WithSessionCookie(t *testing.T) {
 	auth.SetSessionCookie(rec, secret)
 	cookies := rec.Result().Cookies()
 
-	// Now use that cookie on a request from outside the home network
+	// Now use that cookie on a request with a valid session
 	req := httptest.NewRequest("POST", "/api/session/reset", nil)
 	req.RemoteAddr = "8.8.8.8:12345"
 	for _, c := range cookies {

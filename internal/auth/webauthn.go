@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"crypto/subtle"
 	"encoding/json"
 	"log/slog"
 	"net/http"
@@ -114,7 +115,7 @@ func (h *WebAuthnHandler) checkRegistrationPIN(w http.ResponseWriter, r *http.Re
 		return false
 	}
 	pin := r.Header.Get("X-Registration-PIN")
-	if pin != h.registrationPIN {
+	if subtle.ConstantTimeCompare([]byte(pin), []byte(h.registrationPIN)) != 1 {
 		h.log.Warn("registration rejected: invalid PIN", "remote_addr", r.RemoteAddr)
 		jsonError(w, "invalid registration PIN", http.StatusForbidden)
 		return false
