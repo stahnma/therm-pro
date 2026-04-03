@@ -30,6 +30,8 @@ const modalHigh     = document.getElementById("modal-high");
 const modalLow      = document.getElementById("modal-low");
 const modalCancel   = document.getElementById("modal-cancel");
 const batteryBadge  = document.getElementById("battery-badge");
+const batteryText   = document.getElementById("battery-text");
+const batteryFill   = document.getElementById("battery-fill");
 
 // ── Helpers ─────────────────────────────────────
 function toDisplay(f) {
@@ -42,7 +44,8 @@ function unitLabel() { return useCelsius ? "\u00B0C" : "\u00B0F"; }
 
 function updateBattery(pct) {
   if (pct === null || pct === undefined) return;
-  batteryBadge.textContent = pct + "%";
+  batteryText.textContent = pct + "%";
+  if (batteryFill) batteryFill.setAttribute("width", Math.max(1, Math.round(14 * pct / 100)));
   batteryBadge.classList.remove("battery-low", "battery-mid", "battery-ok");
   if (pct <= 20) batteryBadge.classList.add("battery-low");
   else if (pct <= 50) batteryBadge.classList.add("battery-mid");

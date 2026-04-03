@@ -82,6 +82,7 @@ header h1 {
 .battery-badge {
   display: inline-flex;
   align-items: center;
+  gap: 0.3rem;
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--text-dim);
@@ -89,6 +90,10 @@ header h1 {
   border-radius: 6px;
   background: var(--bg-btn);
   font-variant-numeric: tabular-nums;
+}
+
+.battery-icon {
+  flex-shrink: 0;
 }
 
 .battery-badge.battery-low {
@@ -185,6 +190,56 @@ main {
 
 @media (max-width: 600px) {
   .probe-grid { grid-template-columns: 1fr; }
+
+  header {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+  }
+
+  header h1 {
+    font-size: 1.2rem;
+  }
+
+  .header-actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.4rem;
+  }
+
+  .header-actions .btn,
+  .header-actions .battery-badge {
+    padding: 0.45rem 0.7rem;
+    font-size: 0.8rem;
+    min-height: 2.75rem;
+  }
+
+  main {
+    padding: 0.75rem 0.75rem 3.5rem;
+  }
+
+  .probe-temp {
+    font-size: 2rem;
+  }
+
+  #chart-container {
+    padding: 0.5rem;
+  }
+
+  .modal {
+    max-width: none;
+    margin: 0.5rem;
+  }
+
+  .modal input {
+    font-size: 1rem;
+    padding: 0.7rem 0.75rem;
+  }
+
+  .modal-buttons .btn {
+    padding: 0.75rem;
+    min-height: 2.75rem;
+  }
 }
 
 /* ── Probe Card ──────────────────────────────── */
