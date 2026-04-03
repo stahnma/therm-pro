@@ -4,6 +4,8 @@ let ws = null;
 let chart = null;
 let chartData = [[], [], [], [], []]; // [timestamps, p1, p2, p3, p4]
 let useCelsius = localStorage.getItem("useCelsius") === "true";
+let userRole = 'viewer';
+let canRegister = false;
 
 const PROBE_COLORS_DARK  = ["#c0c0c0", "#4a90d9", "#888888", "#d4a017"];
 const PROBE_COLORS_LIGHT = ["#909090", "#2a6fb5", "#333333", "#b8860b"];
@@ -85,7 +87,7 @@ function renderProbeCards() {
       '<div class="probe-temp">' + toDisplay(p.current_temp) + '</div>' +
       (targetStr ? '<div class="probe-target">' + targetStr + '</div>' : '');
 
-    card.addEventListener("click", () => openModal(p));
+    card.addEventListener("click", () => { if (userRole !== 'admin') return; openModal(p); });
     probeGrid.appendChild(card);
   });
 }
@@ -362,7 +364,135 @@ async function loadCommit() {
   } catch (e) { /* ignore */ }
 }
 
+// ── Auth ────────────────────────────────────────
+async function checkAuth() {
+    try {
+        const resp = await fetch('/api/auth/status');
+        const data = await resp.json();
+        userRole = data.role;
+        canRegister = data.can_register;
+        applyRoleUI();
+    } catch (err) {
+        console.error('Failed to check auth:', err);
+    }
+}
+
+function applyRoleUI() {
+    const resetBtn = document.getElementById('reset-cook');
+    if (resetBtn) resetBtn.style.display = userRole === 'admin' ? '' : 'none';
+
+    const signInBtn = document.getElementById('sign-in');
+    if (signInBtn) signInBtn.style.display = userRole === 'admin' ? 'none' : '';
+
+    const registerBtn = document.getElementById('register-passkey');
+    if (registerBtn) registerBtn.style.display = canRegister ? '' : 'none';
+}
+
+async function signIn() {
+    try {
+        const beginResp = await fetch('/auth/login/begin', { method: 'POST' });
+        if (!beginResp.ok) { alert('Sign in not available'); return; }
+        const options = await beginResp.json();
+
+        // Convert base64url strings to ArrayBuffers for WebAuthn API
+        options.publicKey.challenge = base64urlToBuffer(options.publicKey.challenge);
+        if (options.publicKey.allowCredentials) {
+            options.publicKey.allowCredentials = options.publicKey.allowCredentials.map(c => ({
+                ...c,
+                id: base64urlToBuffer(c.id),
+            }));
+        }
+
+        const credential = await navigator.credentials.get({ publicKey: options.publicKey });
+
+        const finishResp = await fetch('/auth/login/finish', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                id: credential.id,
+                rawId: bufferToBase64url(credential.rawId),
+                type: credential.type,
+                response: {
+                    authenticatorData: bufferToBase64url(credential.response.authenticatorData),
+                    clientDataJSON: bufferToBase64url(credential.response.clientDataJSON),
+                    signature: bufferToBase64url(credential.response.signature),
+                    userHandle: credential.response.userHandle ? bufferToBase64url(credential.response.userHandle) : null,
+                },
+            }),
+        });
+
+        if (finishResp.ok) {
+            location.reload();
+        } else {
+            alert('Sign in failed');
+        }
+    } catch (err) {
+        console.error('Sign in error:', err);
+        alert('Sign in failed: ' + err.message);
+    }
+}
+
+async function registerPasskey() {
+    try {
+        const beginResp = await fetch('/auth/register/begin', { method: 'POST' });
+        if (!beginResp.ok) { alert('Registration not available'); return; }
+        const options = await beginResp.json();
+
+        options.publicKey.challenge = base64urlToBuffer(options.publicKey.challenge);
+        options.publicKey.user.id = base64urlToBuffer(options.publicKey.user.id);
+        if (options.publicKey.excludeCredentials) {
+            options.publicKey.excludeCredentials = options.publicKey.excludeCredentials.map(c => ({
+                ...c,
+                id: base64urlToBuffer(c.id),
+            }));
+        }
+
+        const credential = await navigator.credentials.create({ publicKey: options.publicKey });
+
+        const finishResp = await fetch('/auth/register/finish', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                id: credential.id,
+                rawId: bufferToBase64url(credential.rawId),
+                type: credential.type,
+                response: {
+                    attestationObject: bufferToBase64url(credential.response.attestationObject),
+                    clientDataJSON: bufferToBase64url(credential.response.clientDataJSON),
+                },
+            }),
+        });
+
+        if (finishResp.ok) {
+            alert('Passkey registered!');
+        } else {
+            alert('Registration failed');
+        }
+    } catch (err) {
+        console.error('Register error:', err);
+        alert('Registration failed: ' + err.message);
+    }
+}
+
+function base64urlToBuffer(base64url) {
+    const base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
+    const pad = base64.length % 4;
+    const padded = pad ? base64 + '='.repeat(4 - pad) : base64;
+    const binary = atob(padded);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return bytes.buffer;
+}
+
+function bufferToBase64url(buffer) {
+    const bytes = new Uint8Array(buffer);
+    let binary = '';
+    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+    return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
 // ── Boot ────────────────────────────────────────
+checkAuth();
 loadSession().then(() => {
   connectWS();
 });
