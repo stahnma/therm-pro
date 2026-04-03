@@ -2,7 +2,7 @@ package auth
 
 import (
 	"encoding/json"
-	"log"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"sync"
@@ -36,6 +36,7 @@ type WebAuthnHandler struct {
 	wa            *webauthn.WebAuthn
 	credStore     *CredentialStore
 	sessionSecret []byte
+	log           *slog.Logger
 
 	mu               sync.Mutex
 	pendingSession   *webauthn.SessionData
@@ -65,11 +66,14 @@ func NewWebAuthnHandler(rpName, rpOrigin string, credStore *CredentialStore, dat
 		return nil, err
 	}
 
-	return &WebAuthnHandler{
+	handler := &WebAuthnHandler{
 		wa:            wa,
 		credStore:     credStore,
 		sessionSecret: secret,
-	}, nil
+		log:           slog.Default().With("component", "webauthn"),
+	}
+	handler.log.Info("webauthn configured", "rp_id", rpID, "rp_origin", rpOrigin)
+	return handler, nil
 }
 
 // user builds a thermProUser from the credential store.
@@ -100,11 +104,12 @@ func (h *WebAuthnHandler) pendingValid() *webauthn.SessionData {
 
 // RegisterBegin starts the WebAuthn registration ceremony.
 func (h *WebAuthnHandler) RegisterBegin(w http.ResponseWriter, r *http.Request) {
+	h.log.Debug("register begin", "remote_addr", r.RemoteAddr)
 	user := h.user()
 
 	creation, session, err := h.wa.BeginRegistration(user)
 	if err != nil {
-		log.Printf("webauthn: begin registration error: %v", err)
+		h.log.Error("begin registration failed", "error", err)
 		jsonError(w, "registration failed", http.StatusInternalServerError)
 		return
 	}
@@ -114,12 +119,14 @@ func (h *WebAuthnHandler) RegisterBegin(w http.ResponseWriter, r *http.Request) 
 	h.pendingCreatedAt = time.Now()
 	h.mu.Unlock()
 
+	h.log.Debug("register begin: challenge issued")
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(creation)
 }
 
 // RegisterFinish completes the WebAuthn registration ceremony.
 func (h *WebAuthnHandler) RegisterFinish(w http.ResponseWriter, r *http.Request) {
+	h.log.Debug("register finish", "remote_addr", r.RemoteAddr)
 	user := h.user()
 
 	h.mu.Lock()
@@ -127,13 +134,14 @@ func (h *WebAuthnHandler) RegisterFinish(w http.ResponseWriter, r *http.Request)
 	h.mu.Unlock()
 
 	if sessionData == nil {
+		h.log.Warn("register finish rejected: no pending registration")
 		jsonError(w, "no pending registration", http.StatusBadRequest)
 		return
 	}
 
 	credential, err := h.wa.FinishRegistration(user, *sessionData, r)
 	if err != nil {
-		log.Printf("webauthn: finish registration error: %v", err)
+		h.log.Error("registration verification failed", "error", err)
 		jsonError(w, "registration verification failed", http.StatusBadRequest)
 		return
 	}
@@ -148,26 +156,30 @@ func (h *WebAuthnHandler) RegisterFinish(w http.ResponseWriter, r *http.Request)
 		Label:     "Passkey",
 	})
 	if err := h.credStore.Save(); err != nil {
-		log.Printf("webauthn: save credential error: %v", err)
+		h.log.Error("failed to save credential", "error", err)
 		jsonError(w, "failed to save credential", http.StatusInternalServerError)
 		return
 	}
 
+	h.log.Info("passkey registered", "remote_addr", r.RemoteAddr)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 }
 
 // LoginBegin starts the WebAuthn login ceremony.
 func (h *WebAuthnHandler) LoginBegin(w http.ResponseWriter, r *http.Request) {
+	h.log.Debug("login begin", "remote_addr", r.RemoteAddr, "user_agent", r.UserAgent())
 	user := h.user()
 	if len(user.credentials) == 0 {
+		h.log.Warn("login begin rejected: no credentials registered")
 		jsonError(w, "no credentials registered", http.StatusBadRequest)
 		return
 	}
+	h.log.Debug("login begin: found credentials", "count", len(user.credentials))
 
 	assertion, session, err := h.wa.BeginLogin(user)
 	if err != nil {
-		log.Printf("webauthn: begin login error: %v", err)
+		h.log.Error("begin login failed", "error", err)
 		jsonError(w, "login failed", http.StatusInternalServerError)
 		return
 	}
@@ -177,12 +189,14 @@ func (h *WebAuthnHandler) LoginBegin(w http.ResponseWriter, r *http.Request) {
 	h.pendingCreatedAt = time.Now()
 	h.mu.Unlock()
 
+	h.log.Debug("login begin: challenge issued")
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(assertion)
 }
 
 // LoginFinish completes the WebAuthn login ceremony and sets a session cookie.
 func (h *WebAuthnHandler) LoginFinish(w http.ResponseWriter, r *http.Request) {
+	h.log.Debug("login finish", "remote_addr", r.RemoteAddr)
 	user := h.user()
 
 	h.mu.Lock()
@@ -190,13 +204,14 @@ func (h *WebAuthnHandler) LoginFinish(w http.ResponseWriter, r *http.Request) {
 	h.mu.Unlock()
 
 	if sessionData == nil {
+		h.log.Warn("login finish rejected: no pending session (expired or missing)")
 		jsonError(w, "no pending login", http.StatusBadRequest)
 		return
 	}
 
 	_, err := h.wa.FinishLogin(user, *sessionData, r)
 	if err != nil {
-		log.Printf("webauthn: finish login error: %v", err)
+		h.log.Error("login verification failed", "error", err)
 		jsonError(w, "login verification failed", http.StatusBadRequest)
 		return
 	}
@@ -206,6 +221,7 @@ func (h *WebAuthnHandler) LoginFinish(w http.ResponseWriter, r *http.Request) {
 	h.mu.Unlock()
 
 	SetSessionCookie(w, h.sessionSecret)
+	h.log.Info("login succeeded", "remote_addr", r.RemoteAddr)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
