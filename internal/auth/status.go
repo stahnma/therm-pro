@@ -12,19 +12,19 @@ type StatusResponse struct {
 }
 
 // StatusHandler returns an http.HandlerFunc that reports the caller's access level.
-func StatusHandler(validateSession SessionValidator) http.HandlerFunc {
+func StatusHandler(validateSession SessionValidator, registrationPIN string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		isAuthed := validateSession != nil && validateSession(r)
 
 		resp := StatusResponse{
 			Role:        "viewer",
-			CanRegister: false,
+			CanRegister: registrationPIN != "",
 		}
 		if isAuthed {
 			resp.Role = "admin"
 		}
 
-		slog.Debug("auth status", "role", resp.Role, "is_authed", isAuthed, "remote_addr", r.RemoteAddr)
+		slog.Debug("auth status", "role", resp.Role, "can_register", resp.CanRegister, "is_authed", isAuthed, "remote_addr", r.RemoteAddr)
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(resp)
