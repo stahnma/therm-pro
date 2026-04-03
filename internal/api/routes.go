@@ -3,10 +3,12 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/fs"
 	"log/slog"
 	"net/http"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -72,6 +74,19 @@ func (s *Server) Routes() *http.ServeMux {
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("ok\n"))
+	})
+
+	// Temporary debug endpoint — captures client-side errors to a file
+	mux.HandleFunc("POST /api/debug/client-error", func(w http.ResponseWriter, r *http.Request) {
+		body, _ := io.ReadAll(io.LimitReader(r.Body, 4096))
+		entry := fmt.Sprintf("[%s] %s\n", time.Now().Format(time.RFC3339), string(body))
+		f, err := os.OpenFile(filepath.Join(s.config.DataDir, "client-debug.log"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err == nil {
+			f.WriteString(entry)
+			f.Close()
+		}
+		slog.Info("client debug", "payload", string(body))
+		w.WriteHeader(http.StatusNoContent)
 	})
 
 	// WebAuthn passkey routes

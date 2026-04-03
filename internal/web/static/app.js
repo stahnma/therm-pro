@@ -489,6 +489,22 @@ document.getElementById('pin-form').addEventListener('submit', (e) => {
     return;
   }
 
+  // Log debug state before calling credentials.create()
+  var debugInfo = {
+    event: 'pre-create',
+    optionsCached: !!cachedRegOptions,
+    hasFocus: document.hasFocus(),
+    visibilityState: document.visibilityState,
+    activeElement: document.activeElement ? document.activeElement.tagName + '#' + document.activeElement.id : null,
+    userAgent: navigator.userAgent,
+    timestamp: new Date().toISOString(),
+  };
+  fetch('/api/debug/client-error', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(debugInfo),
+  });
+
   // Call credentials.create() synchronously — no await before this
   navigator.credentials.create({ publicKey: cachedRegOptions.publicKey })
     .then(credential => {
@@ -522,8 +538,22 @@ document.getElementById('pin-form').addEventListener('submit', (e) => {
     })
     .catch(err => {
       overlay.classList.add('hidden');
+      // Send detailed error to server for debugging
+      fetch('/api/debug/client-error', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          event: 'credentials-create-error',
+          errorName: err.name,
+          errorMessage: err.message,
+          errorStack: err.stack,
+          hasFocus: document.hasFocus(),
+          visibilityState: document.visibilityState,
+          timestamp: new Date().toISOString(),
+        }),
+      });
       console.error('Register error:', err);
-      alert('Registration failed: ' + err.message);
+      alert('Registration failed: ' + err.name + ': ' + err.message);
     });
 });
 
