@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"io/fs"
-	"log"
+	"log/slog"
 	"net/http"
 	"path/filepath"
 	"time"
@@ -21,7 +21,7 @@ func (s *Server) Routes() *http.ServeMux {
 	// Set up WebAuthn passkey authentication.
 	credStore := auth.NewCredentialStore(filepath.Join(s.config.DataDir, "passkeys.json"))
 	if err := credStore.Load(); err != nil {
-		log.Printf("WARNING: failed to load credential store: %v", err)
+		slog.Warn("failed to load credential store", "error", err)
 	}
 
 	var sessionValidator auth.SessionValidator
@@ -34,9 +34,10 @@ func (s *Server) Routes() *http.ServeMux {
 		s.config.DataDir,
 	)
 	if err != nil {
-		log.Printf("WARNING: WebAuthn setup failed: %v", err)
+		slog.Warn("webauthn setup failed", "error", err)
 	} else {
 		webauthnHandler = wh
+		slog.Info("webauthn configured", "origin", s.config.WebAuthnOrigin)
 		sessionValidator = wh.ValidateSession
 	}
 

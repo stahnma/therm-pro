@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"log"
+	"log/slog"
 	"net"
 	"net/http"
 	"os"
@@ -99,7 +99,7 @@ func Register(port int) error {
 	registeredIP = ip
 	registeredPort = port
 
-	log.Printf("consul: registered as %q at %s:%d", serviceID, ip, port)
+	slog.Info("consul registered", "service_id", serviceID, "ip", ip, "port", port)
 	return nil
 }
 
@@ -156,9 +156,9 @@ func Deregister() {
 
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Printf("consul: deregister failed: %v", err)
+		slog.Error("consul deregister failed", "error", err)
 		return
 	}
 	resp.Body.Close()
-	log.Printf("consul: deregistered %q", serviceID)
+	slog.Info("consul deregistered", "service_id", serviceID)
 }

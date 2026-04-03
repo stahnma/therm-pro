@@ -2,7 +2,7 @@ package api
 
 import (
 	"encoding/json"
-	"log"
+	"log/slog"
 	"net/http"
 	"path/filepath"
 	"strconv"
@@ -70,7 +70,7 @@ func NewServer(cfg *config.Config, gitCommit string) *Server {
 
 	session, err := cook.Load(sessionPath)
 	if err != nil {
-		log.Printf("warning: could not load session: %v", err)
+		slog.Warn("could not load session", "error", err)
 		session = cook.NewSession()
 	}
 	return &Server{
@@ -127,7 +127,7 @@ func (s *Server) handlePostData(w http.ResponseWriter, r *http.Request) {
 	// Persist session to disk.
 	if s.sessionPath != "" {
 		if err := cook.Save(s.session, s.sessionPath); err != nil {
-			log.Printf("warning: could not save session: %v", err)
+			slog.Warn("could not save session", "error", err)
 		}
 	}
 
@@ -136,7 +136,7 @@ func (s *Server) handlePostData(w http.ResponseWriter, r *http.Request) {
 	for i := 0; i < cook.NumProbes; i++ {
 		fired := s.alerts.Evaluate(s.session.Probes[i])
 		for _, alert := range fired {
-			log.Printf("ALERT: %s", alert.Message)
+			slog.Info("alert fired", "message", alert.Message)
 			go s.slack.SendAlert(alert, temps)
 		}
 	}

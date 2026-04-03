@@ -3,7 +3,7 @@ package slack
 import (
 	"fmt"
 	"io"
-	"log"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"strings"
@@ -39,7 +39,7 @@ func (h *CommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := VerifySlackRequest(r, body, h.signingSecret); err != nil {
-		log.Printf("slack command: verification failed: %v", err)
+		slog.Warn("slack command verification failed", "error", err)
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
 	}
@@ -63,7 +63,7 @@ func (h *CommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	pngData, err := chart.RenderSessionChart(history, probes)
 	if err != nil {
-		log.Printf("slack command: chart render failed: %v", err)
+		slog.Error("slack chart render failed", "error", err)
 		w.Header().Set("Content-Type", "application/json")
 		fmt.Fprintf(w, `{"response_type":"in_channel","text":%q}`, statusText)
 		return
@@ -71,7 +71,7 @@ func (h *CommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// Upload chart and post to channel
 	if err := h.client.UploadFileAndPost(pngData, channelID, statusText); err != nil {
-		log.Printf("slack command: file upload failed: %v", err)
+		slog.Error("slack file upload failed", "error", err)
 		w.Header().Set("Content-Type", "application/json")
 		fmt.Fprintf(w, `{"response_type":"in_channel","text":%q}`, statusText)
 		return
