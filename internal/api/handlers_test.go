@@ -205,7 +205,7 @@ func TestDiagnostics_Public(t *testing.T) {
 	}
 }
 
-func TestRegister_NoPIN(t *testing.T) {
+func TestRegisterBegin_NoPINRequired(t *testing.T) {
 	cfg := &config.Config{
 		Port: 8088, DataDir: t.TempDir(),
 		WebAuthnOrigin:  "http://localhost:8088",
@@ -214,14 +214,34 @@ func TestRegister_NoPIN(t *testing.T) {
 	srv := NewServer(cfg, "test")
 	mux := srv.Routes()
 
-	// Request without PIN header should be rejected
+	// RegisterBegin does not check PIN (PIN is checked on finish only)
 	req := httptest.NewRequest("POST", "/auth/register/begin", nil)
 	req.RemoteAddr = "8.8.8.8:12345"
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
 
+	if w.Code != http.StatusOK {
+		t.Errorf("expected 200 from register begin without PIN, got %d", w.Code)
+	}
+}
+
+func TestRegisterFinish_NoPIN(t *testing.T) {
+	cfg := &config.Config{
+		Port: 8088, DataDir: t.TempDir(),
+		WebAuthnOrigin:  "http://localhost:8088",
+		RegistrationPIN: "1234",
+	}
+	srv := NewServer(cfg, "test")
+	mux := srv.Routes()
+
+	// RegisterFinish requires PIN header
+	req := httptest.NewRequest("POST", "/auth/register/finish", nil)
+	req.RemoteAddr = "8.8.8.8:12345"
+	w := httptest.NewRecorder()
+	mux.ServeHTTP(w, req)
+
 	if w.Code != http.StatusForbidden {
-		t.Errorf("expected 403, got %d", w.Code)
+		t.Errorf("expected 403 from register finish without PIN, got %d", w.Code)
 	}
 }
 

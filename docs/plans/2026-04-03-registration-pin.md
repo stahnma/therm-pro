@@ -370,11 +370,12 @@ handler := &WebAuthnHandler{
 }
 ```
 
-Add PIN validation helper:
+Add PIN validation helper. Use constant-time comparison to prevent timing attacks:
 
 ```go
-// checkRegistrationPIN validates the PIN from the X-Registration-PIN header.
-// Returns true if the PIN is valid, false (and writes error response) otherwise.
+// checkRegistrationPIN validates the X-Registration-PIN header against the
+// configured PIN. Returns true if the PIN is valid; otherwise it writes an
+// error response and returns false.
 func (h *WebAuthnHandler) checkRegistrationPIN(w http.ResponseWriter, r *http.Request) bool {
 	if h.registrationPIN == "" {
 		h.log.Warn("registration rejected: no registration PIN configured")
@@ -382,7 +383,7 @@ func (h *WebAuthnHandler) checkRegistrationPIN(w http.ResponseWriter, r *http.Re
 		return false
 	}
 	pin := r.Header.Get("X-Registration-PIN")
-	if pin != h.registrationPIN {
+	if subtle.ConstantTimeCompare([]byte(pin), []byte(h.registrationPIN)) != 1 {
 		h.log.Warn("registration rejected: invalid PIN", "remote_addr", r.RemoteAddr)
 		jsonError(w, "invalid registration PIN", http.StatusForbidden)
 		return false
@@ -391,7 +392,7 @@ func (h *WebAuthnHandler) checkRegistrationPIN(w http.ResponseWriter, r *http.Re
 }
 ```
 
-Add `if !h.checkRegistrationPIN(w, r) { return }` at the top of both `RegisterBegin` and `RegisterFinish`.
+Add `if !h.checkRegistrationPIN(w, r) { return }` at the top of `RegisterFinish` only. Do **not** check the PIN on `RegisterBegin` — mobile browsers require that `navigator.credentials.create()` runs immediately after a user gesture, and a fetch round-trip to a PIN-protected `RegisterBegin` causes the gesture to expire ("document is not focused" error). The challenge itself is not sensitive; security is enforced on `RegisterFinish` where the credential is stored.
 
 **Step 4: Run test to verify it passes**
 
@@ -466,25 +467,66 @@ git commit -m "refactor: wire up session-only auth and PIN registration in route
 
 ---
 
-### Task 6: Update UI — prompt for PIN before registration
+### Task 6: Update UI — inline PIN modal and passkey registration
 
 **Files:**
+- Modify: `internal/web/static/index.html`
 - Modify: `internal/web/static/app.js`
 
-**Step 1: Update registerPasskey() to prompt for PIN**
+**Why not `prompt()`:** Using `prompt()` breaks WebAuthn on Safari — the document loses focus when the prompt dialog is open, and `navigator.credentials.create()` requires the document to be focused as part of the user gesture chain. An inline modal keeps focus within the page.
 
-Replace the `registerPasskey` function to prompt for PIN and send it as a header:
+**Step 1: Add PIN modal HTML to index.html**
+
+Add a new modal before the closing `</body>` tag, after the existing edit modal. Reuse the existing `.modal-overlay` / `.modal` CSS classes:
+
+```html
+<!-- PIN Modal -->
+<div id="pin-overlay" class="modal-overlay hidden">
+  <div class="modal">
+    <h2>Enter Registration PIN</h2>
+    <form id="pin-form" autocomplete="off">
+      <label for="pin-input">PIN</label>
+      <input type="password" id="pin-input" inputmode="numeric" maxlength="20" required>
+      <div class="modal-buttons">
+        <button type="button" id="pin-cancel" class="btn btn-cancel">Cancel</button>
+        <button type="submit" class="btn btn-save">Register</button>
+      </div>
+    </form>
+  </div>
+</div>
+```
+
+**Step 2: Replace registerPasskey() in app.js**
+
+The "Register Passkey" button now shows the PIN modal. The form submit handler collects the PIN, fetches the WebAuthn challenge (no PIN check on begin), immediately calls `navigator.credentials.create()` to stay within the user gesture window, then sends the credential + PIN to finish (where the server validates the PIN before storing):
 
 ```javascript
-async function registerPasskey() {
-  const pin = prompt('Enter registration PIN:');
-  if (!pin) return;
+// Show PIN modal when Register Passkey is clicked
+function registerPasskey() {
+  const overlay = document.getElementById('pin-overlay');
+  const input = document.getElementById('pin-input');
+  overlay.classList.remove('hidden');
+  input.value = '';
+  input.focus();
+}
+
+// Cancel PIN modal
+document.getElementById('pin-cancel').addEventListener('click', () => {
+  document.getElementById('pin-overlay').classList.add('hidden');
+});
+
+// Submit PIN and start registration
+document.getElementById('pin-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const pin = document.getElementById('pin-input').value;
+  const overlay = document.getElementById('pin-overlay');
+  overlay.classList.add('hidden');
 
   try {
-    const beginResp = await fetch('/auth/register/begin', {
-      method: 'POST',
-      headers: { 'X-Registration-PIN': pin },
-    });
+    // No PIN on begin — PIN is checked on finish only.
+    // This keeps credentials.create() close to the user gesture so mobile
+    // browsers don't reject it with "document is not focused".
+    const beginResp = await fetch('/auth/register/begin', { method: 'POST' });
     if (!beginResp.ok) {
       const errData = await beginResp.json().catch(() => ({}));
       alert('Registration not available: ' + (errData.error || beginResp.statusText));
@@ -531,23 +573,24 @@ async function registerPasskey() {
     console.error('Register error:', err);
     alert('Registration failed: ' + err.message);
   }
-}
+});
 ```
 
-**Step 2: Manual test**
+**Step 3: Manual test**
 
 1. Set `registration_pin: "1234"` in `~/.therm-pro/config.yaml`
-2. Start the server: `make run`
+2. Build and start the server: `make run`
 3. Open dashboard — "Register Passkey" button should be visible
-4. Click it — should prompt for PIN
-5. Enter wrong PIN — should show "invalid registration PIN" error
-6. Enter correct PIN — should trigger WebAuthn browser prompt
+4. Click it — PIN modal appears inline (no browser prompt dialog)
+5. Enter wrong PIN, click Register — should show "invalid registration PIN" error
+6. Enter correct PIN, click Register — should trigger WebAuthn browser prompt
+7. Test on both Safari and Chrome mobile
 
-**Step 3: Commit**
+**Step 4: Commit**
 
 ```bash
-git add internal/web/static/app.js
-git commit -m "feat: prompt for registration PIN in UI before passkey registration"
+git add internal/web/static/index.html internal/web/static/app.js
+git commit -m "feat: use inline PIN modal for passkey registration"
 ```
 
 ---

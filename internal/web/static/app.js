@@ -459,10 +459,9 @@ document.getElementById('pin-form').addEventListener('submit', async (e) => {
   overlay.classList.add('hidden');
 
   try {
-    const beginResp = await fetch('/auth/register/begin', {
-      method: 'POST',
-      headers: { 'X-Registration-PIN': pin },
-    });
+    // No PIN on begin — checked on finish only. Keeps credentials.create()
+    // close to the user gesture so mobile browsers allow it.
+    const beginResp = await fetch('/auth/register/begin', { method: 'POST' });
     if (!beginResp.ok) {
       const errData = await beginResp.json().catch(() => ({}));
       alert('Registration not available: ' + (errData.error || beginResp.statusText));

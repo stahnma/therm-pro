@@ -124,10 +124,10 @@ func (h *WebAuthnHandler) checkRegistrationPIN(w http.ResponseWriter, r *http.Re
 }
 
 // RegisterBegin starts the WebAuthn registration ceremony.
+// PIN is not checked here — only on RegisterFinish. Mobile browsers require
+// navigator.credentials.create() to run immediately after a user gesture;
+// a PIN-validating round-trip before that causes the gesture to expire.
 func (h *WebAuthnHandler) RegisterBegin(w http.ResponseWriter, r *http.Request) {
-	if !h.checkRegistrationPIN(w, r) {
-		return
-	}
 	h.log.Debug("register begin", "remote_addr", r.RemoteAddr)
 	user := h.user()
 

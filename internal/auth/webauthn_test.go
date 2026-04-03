@@ -137,42 +137,62 @@ func TestLoadOrCreateSessionSecret(t *testing.T) {
 	}
 }
 
-func TestRegisterBeginRequiresPIN(t *testing.T) {
-	h := &WebAuthnHandler{
-		registrationPIN: "1234",
-		log:             slog.Default().With("component", "webauthn-test"),
+// RegisterBegin does NOT check PIN (PIN is checked on RegisterFinish only).
+// This test verifies it doesn't reject requests without a PIN.
+func TestRegisterBeginNoPINRequired(t *testing.T) {
+	dir := t.TempDir()
+	credStore := NewCredentialStore(filepath.Join(dir, "passkeys.json"))
+	h, err := NewWebAuthnHandler("Therm-Pro", "http://localhost:8088", "1234", credStore, dir)
+	if err != nil {
+		t.Fatalf("failed to create handler: %v", err)
 	}
+
 	req := httptest.NewRequest("POST", "/auth/register/begin", nil)
 	rec := httptest.NewRecorder()
 	h.RegisterBegin(rec, req)
-	if rec.Code != http.StatusForbidden {
-		t.Errorf("expected 403 without PIN, got %d", rec.Code)
+
+	// Should return 200 with a WebAuthn challenge, not 403
+	if rec.Code != http.StatusOK {
+		t.Errorf("expected 200 from RegisterBegin without PIN, got %d", rec.Code)
 	}
 }
 
-func TestRegisterBeginWrongPIN(t *testing.T) {
+func TestRegisterFinishRequiresPIN(t *testing.T) {
 	h := &WebAuthnHandler{
 		registrationPIN: "1234",
 		log:             slog.Default().With("component", "webauthn-test"),
 	}
-	req := httptest.NewRequest("POST", "/auth/register/begin", nil)
+	req := httptest.NewRequest("POST", "/auth/register/finish", nil)
+	rec := httptest.NewRecorder()
+	h.RegisterFinish(rec, req)
+	if rec.Code != http.StatusForbidden {
+		t.Errorf("expected 403 without PIN on finish, got %d", rec.Code)
+	}
+}
+
+func TestRegisterFinishWrongPIN(t *testing.T) {
+	h := &WebAuthnHandler{
+		registrationPIN: "1234",
+		log:             slog.Default().With("component", "webauthn-test"),
+	}
+	req := httptest.NewRequest("POST", "/auth/register/finish", nil)
 	req.Header.Set("X-Registration-PIN", "9999")
 	rec := httptest.NewRecorder()
-	h.RegisterBegin(rec, req)
+	h.RegisterFinish(rec, req)
 	if rec.Code != http.StatusForbidden {
-		t.Errorf("expected 403 with wrong PIN, got %d", rec.Code)
+		t.Errorf("expected 403 with wrong PIN on finish, got %d", rec.Code)
 	}
 }
 
-func TestRegisterBeginNoPINConfigured(t *testing.T) {
+func TestRegisterFinishNoPINConfigured(t *testing.T) {
 	h := &WebAuthnHandler{
 		registrationPIN: "",
 		log:             slog.Default().With("component", "webauthn-test"),
 	}
-	req := httptest.NewRequest("POST", "/auth/register/begin", nil)
+	req := httptest.NewRequest("POST", "/auth/register/finish", nil)
 	rec := httptest.NewRecorder()
-	h.RegisterBegin(rec, req)
+	h.RegisterFinish(rec, req)
 	if rec.Code != http.StatusForbidden {
-		t.Errorf("expected 403 when no PIN configured, got %d", rec.Code)
+		t.Errorf("expected 403 when no PIN configured on finish, got %d", rec.Code)
 	}
 }
