@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -68,11 +69,13 @@ func SetSessionCookie(w http.ResponseWriter, secret []byte) {
 func ValidateSessionCookie(r *http.Request, secret []byte) bool {
 	cookie, err := r.Cookie(sessionCookieName)
 	if err != nil {
+		slog.Debug("session: no cookie")
 		return false
 	}
 
 	parts := strings.SplitN(cookie.Value, ".", 2)
 	if len(parts) != 2 {
+		slog.Debug("session: malformed cookie value")
 		return false
 	}
 
@@ -81,15 +84,22 @@ func ValidateSessionCookie(r *http.Request, secret []byte) bool {
 	// Verify HMAC
 	expected := computeHMAC(expiryStr, secret)
 	if !hmac.Equal([]byte(sig), []byte(expected)) {
+		slog.Warn("session: HMAC mismatch")
 		return false
 	}
 
 	// Check expiry
 	expiry, err := strconv.ParseInt(expiryStr, 10, 64)
 	if err != nil {
+		slog.Debug("session: invalid expiry", "value", expiryStr)
 		return false
 	}
-	return time.Now().Unix() < expiry
+	if time.Now().Unix() >= expiry {
+		slog.Debug("session: expired")
+		return false
+	}
+	slog.Debug("session: valid")
+	return true
 }
 
 func computeHMAC(message string, secret []byte) string {

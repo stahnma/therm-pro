@@ -2,6 +2,7 @@ package auth
 
 import (
 	"encoding/json"
+	"log/slog"
 	"net/http"
 )
 
@@ -23,6 +24,8 @@ func StatusHandler(cidr string, trustProxy bool, validateSession SessionValidato
 		if isHome || isAuthed {
 			resp.Role = "admin"
 		}
+
+		slog.Debug("auth status", "role", resp.Role, "is_home", isHome, "is_authed", isAuthed, "remote_addr", r.RemoteAddr)
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(resp)

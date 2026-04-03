@@ -2,6 +2,7 @@ package auth
 
 import (
 	"encoding/json"
+	"log/slog"
 	"net"
 	"net/http"
 	"strings"
@@ -16,13 +17,16 @@ type SessionValidator func(r *http.Request) bool
 func IsHomeNetwork(r *http.Request, cidr string, trustProxy bool) bool {
 	_, subnet, err := net.ParseCIDR(cidr)
 	if err != nil {
+		slog.Warn("invalid CIDR config", "cidr", cidr, "error", err)
 		return false
 	}
 
 	ipStr := r.RemoteAddr
+	ipSource := "RemoteAddr"
 	if trustProxy {
 		if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
 			ipStr = strings.TrimSpace(strings.Split(xff, ",")[0])
+			ipSource = "X-Forwarded-For"
 		}
 	}
 
@@ -33,9 +37,12 @@ func IsHomeNetwork(r *http.Request, cidr string, trustProxy bool) bool {
 
 	ip := net.ParseIP(host)
 	if ip == nil {
+		slog.Warn("failed to parse IP", "ip_str", ipStr, "source", ipSource)
 		return false
 	}
-	return subnet.Contains(ip)
+	result := subnet.Contains(ip)
+	slog.Debug("home network check", "ip", host, "source", ipSource, "cidr", cidr, "result", result)
+	return result
 }
 
 // RequireHomeNetwork returns middleware that blocks requests not originating
@@ -48,6 +55,7 @@ func RequireHomeNetwork(cidr string, trustProxy bool) func(http.Handler) http.Ha
 				next.ServeHTTP(w, r)
 				return
 			}
+			slog.Info("access denied: not home network", "path", r.URL.Path, "remote_addr", r.RemoteAddr)
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusForbidden)
 			json.NewEncoder(w).Encode(map[string]string{"error": "forbidden"})
@@ -68,6 +76,7 @@ func RequireAuth(cidr string, trustProxy bool, validateSession SessionValidator)
 				next.ServeHTTP(w, r)
 				return
 			}
+			slog.Info("access denied: unauthorized", "path", r.URL.Path, "remote_addr", r.RemoteAddr)
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusUnauthorized)
 			json.NewEncoder(w).Encode(map[string]string{"error": "unauthorized"})
