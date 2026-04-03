@@ -22,6 +22,13 @@ func (u *thermProUser) WebAuthnCredentials() []webauthn.Credential { return u.cr
 
 const challengeTTL = 5 * time.Minute
 
+// jsonError writes a JSON error response.
+func jsonError(w http.ResponseWriter, msg string, code int) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	json.NewEncoder(w).Encode(map[string]string{"error": msg})
+}
+
 // WebAuthnHandler manages WebAuthn registration and login ceremonies.
 // Single-user design: only one pending challenge at a time.
 type WebAuthnHandler struct {
@@ -90,7 +97,7 @@ func (h *WebAuthnHandler) RegisterBegin(w http.ResponseWriter, r *http.Request) 
 	creation, session, err := h.wa.BeginRegistration(user)
 	if err != nil {
 		log.Printf("webauthn: begin registration error: %v", err)
-		http.Error(w, `{"error":"registration failed"}`, http.StatusInternalServerError)
+		jsonError(w, "registration failed", http.StatusInternalServerError)
 		return
 	}
 
@@ -112,14 +119,14 @@ func (h *WebAuthnHandler) RegisterFinish(w http.ResponseWriter, r *http.Request)
 	h.mu.Unlock()
 
 	if sessionData == nil {
-		http.Error(w, `{"error":"no pending registration"}`, http.StatusBadRequest)
+		jsonError(w, "no pending registration", http.StatusBadRequest)
 		return
 	}
 
 	credential, err := h.wa.FinishRegistration(user, *sessionData, r)
 	if err != nil {
 		log.Printf("webauthn: finish registration error: %v", err)
-		http.Error(w, `{"error":"registration verification failed"}`, http.StatusBadRequest)
+		jsonError(w, "registration verification failed", http.StatusBadRequest)
 		return
 	}
 
@@ -134,7 +141,7 @@ func (h *WebAuthnHandler) RegisterFinish(w http.ResponseWriter, r *http.Request)
 	})
 	if err := h.credStore.Save(); err != nil {
 		log.Printf("webauthn: save credential error: %v", err)
-		http.Error(w, `{"error":"failed to save credential"}`, http.StatusInternalServerError)
+		jsonError(w, "failed to save credential", http.StatusInternalServerError)
 		return
 	}
 
@@ -146,14 +153,14 @@ func (h *WebAuthnHandler) RegisterFinish(w http.ResponseWriter, r *http.Request)
 func (h *WebAuthnHandler) LoginBegin(w http.ResponseWriter, r *http.Request) {
 	user := h.user()
 	if len(user.credentials) == 0 {
-		http.Error(w, `{"error":"no credentials registered"}`, http.StatusBadRequest)
+		jsonError(w, "no credentials registered", http.StatusBadRequest)
 		return
 	}
 
 	assertion, session, err := h.wa.BeginLogin(user)
 	if err != nil {
 		log.Printf("webauthn: begin login error: %v", err)
-		http.Error(w, `{"error":"login failed"}`, http.StatusInternalServerError)
+		jsonError(w, "login failed", http.StatusInternalServerError)
 		return
 	}
 
@@ -175,14 +182,14 @@ func (h *WebAuthnHandler) LoginFinish(w http.ResponseWriter, r *http.Request) {
 	h.mu.Unlock()
 
 	if sessionData == nil {
-		http.Error(w, `{"error":"no pending login"}`, http.StatusBadRequest)
+		jsonError(w, "no pending login", http.StatusBadRequest)
 		return
 	}
 
 	_, err := h.wa.FinishLogin(user, *sessionData, r)
 	if err != nil {
 		log.Printf("webauthn: finish login error: %v", err)
-		http.Error(w, `{"error":"login verification failed"}`, http.StatusBadRequest)
+		jsonError(w, "login verification failed", http.StatusBadRequest)
 		return
 	}
 
