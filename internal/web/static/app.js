@@ -391,7 +391,11 @@ function applyRoleUI() {
 async function signIn() {
   try {
     const beginResp = await fetch('/auth/login/begin', { method: 'POST' });
-    if (!beginResp.ok) { alert('Sign in not available'); return; }
+    if (!beginResp.ok) {
+      const errData = await beginResp.json().catch(() => ({}));
+      alert('Sign in not available: ' + (errData.error || beginResp.statusText));
+      return;
+    }
     const options = await beginResp.json();
 
     // Convert base64url strings to ArrayBuffers for WebAuthn API
@@ -424,7 +428,8 @@ async function signIn() {
     if (finishResp.ok) {
       location.reload();
     } else {
-      alert('Sign in failed');
+      const errData = await finishResp.json().catch(() => ({}));
+      alert('Sign in failed: ' + (errData.error || finishResp.statusText));
     }
   } catch (err) {
     console.error('Sign in error:', err);
@@ -435,7 +440,11 @@ async function signIn() {
 async function registerPasskey() {
   try {
     const beginResp = await fetch('/auth/register/begin', { method: 'POST' });
-    if (!beginResp.ok) { alert('Registration not available'); return; }
+    if (!beginResp.ok) {
+      const errData = await beginResp.json().catch(() => ({}));
+      alert('Registration not available: ' + (errData.error || beginResp.statusText));
+      return;
+    }
     const options = await beginResp.json();
 
     options.publicKey.challenge = base64urlToBuffer(options.publicKey.challenge);
@@ -466,7 +475,8 @@ async function registerPasskey() {
     if (finishResp.ok) {
       alert('Passkey registered!');
     } else {
-      alert('Registration failed');
+      const errData = await finishResp.json().catch(() => ({}));
+      alert('Registration failed: ' + (errData.error || finishResp.statusText));
     }
   } catch (err) {
     console.error('Register error:', err);
