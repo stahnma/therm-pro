@@ -60,14 +60,40 @@ GOOS=linux GOARCH=amd64 make build    # x86_64
 
 The server listens on port 8088 by default and stores session data in `~/.therm-pro/session.json`.
 
-**Configuration via environment variables:**
+**Configuration** is loaded in layers (each overrides the previous):
+
+1. Built-in defaults
+2. `~/.therm-pro/config.yaml` (optional)
+3. `~/.therm-pro/.env` (optional)
+4. Environment variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `PORT` | `8088` | HTTP server port |
+| `THERM_PRO_ALLOWED_CIDR` | `192.168.1.0/24` | CIDR range for home network (full access without auth) |
+| `THERM_PRO_TRUST_PROXY` | `false` | Trust `X-Forwarded-For` header (set `true` behind a reverse proxy) |
+| `THERM_PRO_WEBAUTHN_RP_ID` | `localhost` | WebAuthn relying party ID (set to your domain for passkey auth) |
+| `THERM_PRO_WEBAUTHN_ORIGIN` | `http://localhost:8088` | WebAuthn origin URL (set to your public URL for passkey auth) |
 | `THERM_PRO_SLACK_WEBHOOK` | _(empty)_ | Slack incoming webhook URL for alerts |
 | `THERM_PRO_SLACK_SIGNING_SECRET` | _(empty)_ | Slack app signing secret (for `/tp25` slash command) |
 | `THERM_PRO_SLACK_BOT_TOKEN` | _(empty)_ | Slack bot token (for `/tp25` slash command) |
+
+Example `~/.therm-pro/config.yaml`:
+
+```yaml
+port: 8088
+allowed_cidr: "192.168.1.0/24"
+trust_proxy: false
+webauthn_rp_id: "localhost"
+webauthn_origin: "http://localhost:8088"
+
+slack:
+  webhook: ""
+  signing_secret: ""
+  bot_token: ""
+```
+
+**Access control:** Requests from the home network (matching `allowed_cidr`) have full read/write access. Remote users see a read-only dashboard and can authenticate with a [passkey](#passkey-authentication) for write access. See [Access Control](#access-control) below.
 
 The server automatically registers itself with the local Consul agent (`localhost:8500`) on startup. If Consul isn't running, the server logs a warning and operates normally.
 
@@ -181,6 +207,46 @@ cloudflared tunnel --url http://localhost:8088 run tp25
 ```
 
 For development/testing, you can use [ngrok](https://ngrok.com/) instead: `ngrok http 8088`.
+
+### Access Control
+
+The dashboard has three access tiers:
+
+| Tier | Who | Access |
+|------|-----|--------|
+| **Home network** | Any device on `allowed_cidr` (default `192.168.1.0/24`) | Full read/write — no login required |
+| **Authenticated** | Remote users with a registered passkey | Full read/write via session cookie |
+| **Public** | Everyone else | Read-only — can view temps, chart, battery |
+
+Protected actions (reset cook, set alerts, upload firmware) require home network access or a valid passkey session.
+
+**Tailscale users:** Set `THERM_PRO_ALLOWED_CIDR=100.64.0.0/10` to trust Tailscale IPs directly.
+
+**Behind a reverse proxy:** Set `THERM_PRO_TRUST_PROXY=true` so the server checks `X-Forwarded-For` instead of the direct connection IP.
+
+### Passkey Authentication
+
+Passkeys let you authenticate from outside your home network using 1Password, Face ID, or any FIDO2 authenticator.
+
+**Register a passkey (must be on home network):**
+
+1. Open the dashboard from your home network
+2. Click "Register Passkey" in the header
+3. Follow the browser/authenticator prompt
+
+**Sign in remotely:**
+
+1. Open the dashboard from anywhere
+2. Click "Sign In" in the header
+3. Your authenticator (1Password, etc.) handles the rest
+4. Session lasts 24 hours
+
+**Production setup:** When running behind a reverse proxy (e.g., Cloudflare Tunnel), set `THERM_PRO_WEBAUTHN_RP_ID` to your domain and `THERM_PRO_WEBAUTHN_ORIGIN` to your public URL:
+
+```bash
+THERM_PRO_WEBAUTHN_RP_ID=tp25.yourdomain.com
+THERM_PRO_WEBAUTHN_ORIGIN=https://tp25.yourdomain.com
+```
 
 ### Network Setup
 
