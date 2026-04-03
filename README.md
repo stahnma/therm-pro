@@ -70,8 +70,7 @@ The server listens on port 8088 by default and stores session data in `~/.therm-
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `PORT` | `8088` | HTTP server port |
-| `THERM_PRO_ALLOWED_CIDR` | `192.168.1.0/24` | CIDR range for home network (full access without auth) |
-| `THERM_PRO_TRUST_PROXY` | `false` | Trust `X-Forwarded-For` header (set `true` behind a reverse proxy) |
+| `THERM_PRO_REGISTRATION_PIN` | _(empty)_ | PIN required to register a new passkey (empty = registration disabled) |
 | `THERM_PRO_WEBAUTHN_ORIGIN` | `http://localhost:8088` | WebAuthn origin URL (set to your public URL for passkey auth; domain is derived automatically) |
 | `THERM_PRO_LOG_LEVEL` | `info` | Log verbosity: `debug`, `info`, `warn`, `error` |
 | `THERM_PRO_SLACK_WEBHOOK` | _(empty)_ | Slack incoming webhook URL for alerts |
@@ -82,8 +81,7 @@ Example `~/.therm-pro/config.yaml`:
 
 ```yaml
 port: 8088
-allowed_cidr: "192.168.1.0/24"
-trust_proxy: false
+registration_pin: "1234"
 webauthn_origin: "http://localhost:8088"
 log_level: "info"
 
@@ -93,7 +91,7 @@ slack:
   bot_token: ""
 ```
 
-**Access control:** Requests from the home network (matching `allowed_cidr`) have full read/write access. Remote users see a read-only dashboard and can authenticate with a [passkey](#passkey-authentication) for write access. See [Access Control](#access-control) below.
+**Access control:** Unauthenticated users see a read-only dashboard. Authenticate with a [passkey](#passkey-authentication) for full read/write access. See [Access Control](#access-control) below.
 
 The server automatically registers itself with the local Consul agent (`localhost:8500`) on startup. If Consul isn't running, the server logs a warning and operates normally.
 
@@ -210,31 +208,29 @@ For development/testing, you can use [ngrok](https://ngrok.com/) instead: `ngrok
 
 ### Access Control
 
-The dashboard has three access tiers:
+The dashboard has two access tiers:
 
 | Tier | Who | Access |
 |------|-----|--------|
-| **Home network** | Any device on `allowed_cidr` (default `192.168.1.0/24`) | Full read/write — no login required |
-| **Authenticated** | Remote users with a registered passkey | Full read/write via session cookie |
-| **Public** | Everyone else | Read-only — can view temps, chart, battery |
+| **Authenticated** | Users with a registered passkey | Full read/write via session cookie |
+| **Unauthenticated** | Everyone else | Read-only — can view temps, chart, battery |
 
-Protected actions (reset cook, set alerts, upload firmware) require home network access or a valid passkey session.
-
-**Tailscale users:** Set `THERM_PRO_ALLOWED_CIDR=100.64.0.0/10` to trust Tailscale IPs directly.
-
-**Behind a reverse proxy:** Set `THERM_PRO_TRUST_PROXY=true` so the server checks `X-Forwarded-For` instead of the direct connection IP.
+Protected actions (reset cook, set alerts, upload firmware) require a valid passkey session.
 
 ### Passkey Authentication
 
-Passkeys let you authenticate from outside your home network using 1Password, Face ID, or any FIDO2 authenticator.
+Passkeys let you authenticate using 1Password, Face ID, or any FIDO2 authenticator.
 
-**Register a passkey (must be on home network):**
+**Register a passkey:**
 
-1. Open the dashboard from your home network
-2. Click "Register Passkey" in the header
-3. Follow the browser/authenticator prompt
+1. Set `registration_pin` in your config (or `THERM_PRO_REGISTRATION_PIN` env var)
+2. Open the dashboard and click "Register Passkey" in the header
+3. Enter the PIN when prompted
+4. Follow the browser/authenticator prompt
 
-**Sign in remotely:**
+Registration is disabled when no PIN is configured.
+
+**Sign in:**
 
 1. Open the dashboard from anywhere
 2. Click "Sign In" in the header
