@@ -66,3 +66,80 @@ func TestPostAlerts(t *testing.T) {
 		t.Fatalf("expected 200, got %d", w.Code)
 	}
 }
+
+func TestResetSession_Unauthorized(t *testing.T) {
+	srv := NewServer(&config.Config{
+		Port:        8088,
+		AllowedCIDR: "192.168.1.0/24",
+		DataDir:     t.TempDir(),
+	}, "test")
+	mux := srv.Routes()
+
+	req := httptest.NewRequest("POST", "/api/session/reset", nil)
+	req.RemoteAddr = "8.8.8.8:12345"
+	w := httptest.NewRecorder()
+	mux.ServeHTTP(w, req)
+
+	if w.Code != http.StatusUnauthorized {
+		t.Errorf("expected 401, got %d", w.Code)
+	}
+}
+
+func TestResetSession_HomeNetwork(t *testing.T) {
+	srv := NewServer(&config.Config{
+		Port:        8088,
+		AllowedCIDR: "192.168.1.0/24",
+		DataDir:     t.TempDir(),
+	}, "test")
+	mux := srv.Routes()
+
+	req := httptest.NewRequest("POST", "/api/session/reset", nil)
+	req.RemoteAddr = "192.168.1.50:12345"
+	w := httptest.NewRecorder()
+	mux.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("expected 200, got %d", w.Code)
+	}
+}
+
+func TestPostAlerts_Unauthorized(t *testing.T) {
+	srv := NewServer(&config.Config{
+		Port:        8088,
+		AllowedCIDR: "192.168.1.0/24",
+		DataDir:     t.TempDir(),
+	}, "test")
+	mux := srv.Routes()
+
+	body := `{"probe_id":2,"alert":{"target_temp":203.0}}`
+	req := httptest.NewRequest("POST", "/api/alerts", bytes.NewBufferString(body))
+	req.RemoteAddr = "8.8.8.8:12345"
+	w := httptest.NewRecorder()
+	mux.ServeHTTP(w, req)
+
+	if w.Code != http.StatusUnauthorized {
+		t.Errorf("expected 401, got %d", w.Code)
+	}
+}
+
+func TestAuthStatus_Endpoint(t *testing.T) {
+	srv := NewServer(&config.Config{
+		Port:        8088,
+		AllowedCIDR: "192.168.1.0/24",
+		DataDir:     t.TempDir(),
+	}, "test")
+	mux := srv.Routes()
+
+	req := httptest.NewRequest("GET", "/api/auth/status", nil)
+	req.RemoteAddr = "192.168.1.50:12345"
+	w := httptest.NewRecorder()
+	mux.ServeHTTP(w, req)
+
+	var resp struct {
+		Role string `json:"role"`
+	}
+	json.NewDecoder(w.Body).Decode(&resp)
+	if resp.Role != "admin" {
+		t.Errorf("expected admin, got %s", resp.Role)
+	}
+}

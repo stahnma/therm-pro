@@ -8,20 +8,25 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/stahnma/therm-pro/internal/auth"
 	"github.com/stahnma/therm-pro/internal/slack"
 	"github.com/stahnma/therm-pro/internal/web"
 )
 
 func (s *Server) Routes() *http.ServeMux {
 	mux := http.NewServeMux()
+
+	requireAuth := auth.RequireAuth(s.config.AllowedCIDR, s.config.TrustProxy, nil)
+
 	mux.HandleFunc("POST /api/data", s.handlePostData)
 	mux.HandleFunc("GET /api/session", s.handleGetSession)
-	mux.HandleFunc("POST /api/session/reset", s.handleResetSession)
-	mux.HandleFunc("POST /api/alerts", s.handlePostAlerts)
+	mux.Handle("POST /api/session/reset", requireAuth(http.HandlerFunc(s.handleResetSession)))
+	mux.Handle("POST /api/alerts", requireAuth(http.HandlerFunc(s.handlePostAlerts)))
 	mux.HandleFunc("GET /api/ws", s.handleWebSocket)
 	mux.HandleFunc("GET /api/firmware/latest", s.firmware.HandleLatest)
 	mux.HandleFunc("GET /api/firmware/download", s.firmware.HandleDownload)
-	mux.HandleFunc("POST /api/firmware/upload", s.firmware.HandleUpload)
+	mux.Handle("POST /api/firmware/upload", requireAuth(http.HandlerFunc(s.firmware.HandleUpload)))
+	mux.HandleFunc("GET /api/auth/status", auth.StatusHandler(s.config.AllowedCIDR, s.config.TrustProxy, nil))
 	mux.HandleFunc("GET /api/docs", func(w http.ResponseWriter, r *http.Request) {
 		staticFS, _ := fs.Sub(web.StaticFiles, "static")
 		f, err := staticFS.Open("docs.html")
