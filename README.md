@@ -249,9 +249,34 @@ The server runs on your local network. The ESP32 and your phone/laptop need to b
 
 **Accessing from outside your network:** Set up port forwarding on your router to forward an external port to `<server-ip>:8088`. The specifics depend on your router.
 
-## Running as a systemd Service
+## Installation
 
-A systemd unit file is provided in `contrib/therm-pro-server.service`. To install:
+Build and install as a systemd service:
+
+    make build
+    sudo ./bin/therm-pro-server install
+
+This will:
+- Copy the binary to `/usr/local/bin/therm-pro-server`
+- Create a `therm-pro` system user
+- Create `/var/lib/therm-pro` data directory
+- Install and enable a systemd unit
+
+To install to a different prefix (e.g. `/usr` or `/opt`):
+
+    sudo ./bin/therm-pro-server install --prefix=/usr
+
+Start the service:
+
+    sudo systemctl start therm-pro-server
+
+Preview without making changes:
+
+    ./bin/therm-pro-server install --dry-run
+
+## Running as a systemd Service (Manual)
+
+A systemd unit file is provided in `contrib/therm-pro-server.service`. To install manually:
 
 ```bash
 # Create a dedicated user
