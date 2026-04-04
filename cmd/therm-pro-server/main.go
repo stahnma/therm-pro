@@ -4,6 +4,7 @@ package main
 import (
 	"bufio"
 	"context"
+	"flag"
 	"fmt"
 	"log"
 	"log/slog"
@@ -19,6 +20,7 @@ import (
 	"github.com/stahnma/therm-pro/internal/api"
 	"github.com/stahnma/therm-pro/internal/config"
 	"github.com/stahnma/therm-pro/internal/consul"
+	"github.com/stahnma/therm-pro/internal/systemd"
 )
 
 // GitCommit is set at build time via -ldflags.
@@ -83,6 +85,11 @@ func requestLogger(next http.Handler) http.Handler {
 }
 
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "install" {
+		runInstall()
+		return
+	}
+
 	cfg, err := config.Load("")
 	if err != nil {
 		log.Fatalf("failed to load config: %v", err)
@@ -119,4 +126,58 @@ func main() {
 	slog.Info("shutting down")
 	consul.Deregister()
 	httpSrv.Shutdown(context.Background())
+}
+
+func runInstall() {
+	// Load config to pick up port from config.yaml / .env / env vars.
+	cfg, err := config.Load("")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "warning: could not load config, using defaults: %v\n", err)
+		cfg = &config.Config{Port: 8088}
+	}
+
+	fs := flag.NewFlagSet("install", flag.ExitOnError)
+	fs.Usage = func() {
+		fmt.Fprintf(os.Stderr, "Usage: %s install [flags]\n\nInstall therm-pro-server as a systemd service.\n\nFlags:\n", os.Args[0])
+		fs.PrintDefaults()
+	}
+	dryRun := fs.Bool("dry-run", false, "print actions without executing")
+	prefix := fs.String("prefix", "/usr/local", "installation prefix (binary goes in <prefix>/bin/)")
+	port := fs.Int("port", cfg.Port, "port for the service")
+	fs.Parse(os.Args[2:])
+
+	if os.Geteuid() != 0 && !*dryRun {
+		fmt.Fprintln(os.Stderr, "error: install must be run as root (try sudo)")
+		os.Exit(1)
+	}
+
+	self, err := os.Executable()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: cannot determine binary path: %v\n", err)
+		os.Exit(1)
+	}
+
+	opts := systemd.Options{
+		BinPath: systemd.DefaultBinPath(*prefix),
+		User:    "therm-pro",
+		Port:    *port,
+		DataDir: "/var/lib/therm-pro",
+		DryRun:  *dryRun,
+	}
+
+	actions, err := systemd.Install(opts, self, cfg.DataDir)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
+
+	if *dryRun {
+		fmt.Println("Dry run — actions that would be taken:")
+	}
+	for _, a := range actions {
+		fmt.Printf("  %s\n", a)
+	}
+	if !*dryRun {
+		fmt.Println("\nInstalled. Start with: systemctl start therm-pro-server")
+	}
 }

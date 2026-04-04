@@ -1,0 +1,21 @@
+[Unit]
+Description=Therm-Pro Temperature Monitoring Server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User={{.User}}
+Group={{.User}}
+ExecStart={{.BinPath}}
+Restart=on-failure
+RestartSec=5
+
+Environment=PORT={{.Port}}
+Environment=THERM_PRO_DATA_DIR={{.DataDir}}
+
+StateDirectory=therm-pro
+WorkingDirectory={{.DataDir}}
+
+[Install]
+WantedBy=multi-user.target

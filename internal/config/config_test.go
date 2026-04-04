@@ -124,6 +124,29 @@ func TestEnvOverridesDotEnv(t *testing.T) {
 	}
 }
 
+func TestDataDirEnvOverride(t *testing.T) {
+	t.Setenv("THERM_PRO_DATA_DIR", "/var/lib/therm-pro")
+	cfg, err := Load("")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if cfg.DataDir != "/var/lib/therm-pro" {
+		t.Errorf("expected data_dir '/var/lib/therm-pro', got %s", cfg.DataDir)
+	}
+}
+
+func TestDataDirExplicitArgTakesPrecedence(t *testing.T) {
+	t.Setenv("THERM_PRO_DATA_DIR", "/should/be/ignored")
+	dir := t.TempDir()
+	cfg, err := Load(dir)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if cfg.DataDir != dir {
+		t.Errorf("expected data_dir %q, got %s", dir, cfg.DataDir)
+	}
+}
+
 func TestLegacyPortEnv(t *testing.T) {
 	t.Setenv("PORT", "3000")
 	cfg, err := Load("")
