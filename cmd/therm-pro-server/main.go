@@ -19,6 +19,7 @@ import (
 	"github.com/stahnma/therm-pro/internal/api"
 	"github.com/stahnma/therm-pro/internal/config"
 	"github.com/stahnma/therm-pro/internal/consul"
+	"github.com/stahnma/therm-pro/internal/systemd"
 )
 
 // GitCommit is set at build time via -ldflags.
@@ -83,6 +84,11 @@ func requestLogger(next http.Handler) http.Handler {
 }
 
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "install" {
+		runInstall()
+		return
+	}
+
 	cfg, err := config.Load("")
 	if err != nil {
 		log.Fatalf("failed to load config: %v", err)
@@ -119,4 +125,54 @@ func main() {
 	slog.Info("shutting down")
 	consul.Deregister()
 	httpSrv.Shutdown(context.Background())
+}
+
+func runInstall() {
+	dryRun := false
+	prefix := "/usr/local"
+	for i, arg := range os.Args[2:] {
+		switch {
+		case arg == "--dry-run":
+			dryRun = true
+		case arg == "--prefix" && i+1 < len(os.Args[2:]):
+			prefix = os.Args[2+i+1]
+		case strings.HasPrefix(arg, "--prefix="):
+			prefix = strings.TrimPrefix(arg, "--prefix=")
+		}
+	}
+
+	if os.Geteuid() != 0 && !dryRun {
+		fmt.Fprintln(os.Stderr, "error: install must be run as root (try sudo)")
+		os.Exit(1)
+	}
+
+	self, err := os.Executable()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: cannot determine binary path: %v\n", err)
+		os.Exit(1)
+	}
+
+	opts := systemd.Options{
+		BinPath: systemd.DefaultBinPath(prefix),
+		User:    "therm-pro",
+		Port:    8088,
+		DataDir: "/var/lib/therm-pro",
+		DryRun:  dryRun,
+	}
+
+	actions, err := systemd.Install(opts, self)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
+
+	if dryRun {
+		fmt.Println("Dry run — actions that would be taken:")
+	}
+	for _, a := range actions {
+		fmt.Printf("  %s\n", a)
+	}
+	if !dryRun {
+		fmt.Println("\nInstalled. Start with: systemctl start therm-pro-server")
+	}
 }
