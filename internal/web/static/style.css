@@ -144,6 +144,16 @@ header h1 {
 }
 .btn-docs:hover { background: var(--bg-btn-hover); }
 
+.btn-auth {
+  background: var(--bg-btn);
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.3rem 0.7rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+.btn-auth:hover { opacity: 0.8; }
+
 .btn-reset {
   background: #c0392b;
   color: #fff;

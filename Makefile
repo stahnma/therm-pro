@@ -1,4 +1,4 @@
-.PHONY: help build run clean test esp32-config esp32-build esp32-flash esp32-upload esp32-monitor
+.PHONY: help build run clean test fmt tidy esp32-config esp32-build esp32-flash esp32-upload esp32-monitor
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z0-9_-]+:.*##' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*##"}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
@@ -16,6 +16,12 @@ test: ## Run all Go tests
 
 clean: ## Remove build artifacts
 	rm -rf bin/
+
+fmt: ## Format Go source files
+	go fmt ./...
+
+tidy: ## Tidy and verify Go module dependencies
+	go mod tidy
 
 esp32-config: ## Generate esp32/src/config.h from env vars (ESP32_WIFI_SSID, ESP32_WIFI_PASS; ESP32_SERVER_URL defaults to http://tp25.service.dc1.consul:8088)
 	@if [ -z "$$ESP32_WIFI_SSID" ]; then echo "ERROR: ESP32_WIFI_SSID is not set"; exit 1; fi

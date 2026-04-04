@@ -5,23 +5,54 @@ import (
 	"encoding/json"
 	"io"
 	"io/fs"
+	"log/slog"
 	"net/http"
+	"path/filepath"
 	"time"
 
+	"github.com/stahnma/therm-pro/internal/auth"
 	"github.com/stahnma/therm-pro/internal/slack"
 	"github.com/stahnma/therm-pro/internal/web"
 )
 
 func (s *Server) Routes() *http.ServeMux {
 	mux := http.NewServeMux()
+
+	// Set up WebAuthn passkey authentication.
+	credStore := auth.NewCredentialStore(filepath.Join(s.config.DataDir, "passkeys.json"))
+	if err := credStore.Load(); err != nil {
+		slog.Warn("failed to load credential store", "error", err)
+	}
+
+	var sessionValidator auth.SessionValidator
+	var webauthnHandler *auth.WebAuthnHandler
+
+	wh, err := auth.NewWebAuthnHandler(
+		"Therm-Pro",
+		s.config.WebAuthnOrigin,
+		s.config.RegistrationPIN,
+		credStore,
+		s.config.DataDir,
+	)
+	if err != nil {
+		slog.Warn("webauthn setup failed", "error", err)
+	} else {
+		webauthnHandler = wh
+		slog.Info("webauthn configured", "origin", s.config.WebAuthnOrigin)
+		sessionValidator = wh.ValidateSession
+	}
+
+	requireAuth := auth.RequireAuth(sessionValidator)
+
 	mux.HandleFunc("POST /api/data", s.handlePostData)
 	mux.HandleFunc("GET /api/session", s.handleGetSession)
-	mux.HandleFunc("POST /api/session/reset", s.handleResetSession)
-	mux.HandleFunc("POST /api/alerts", s.handlePostAlerts)
+	mux.Handle("POST /api/session/reset", requireAuth(http.HandlerFunc(s.handleResetSession)))
+	mux.Handle("POST /api/alerts", requireAuth(http.HandlerFunc(s.handlePostAlerts)))
 	mux.HandleFunc("GET /api/ws", s.handleWebSocket)
 	mux.HandleFunc("GET /api/firmware/latest", s.firmware.HandleLatest)
 	mux.HandleFunc("GET /api/firmware/download", s.firmware.HandleDownload)
-	mux.HandleFunc("POST /api/firmware/upload", s.firmware.HandleUpload)
+	mux.Handle("POST /api/firmware/upload", requireAuth(http.HandlerFunc(s.firmware.HandleUpload)))
+	mux.HandleFunc("GET /api/auth/status", auth.StatusHandler(sessionValidator, s.config.RegistrationPIN))
 	mux.HandleFunc("GET /api/docs", func(w http.ResponseWriter, r *http.Request) {
 		staticFS, _ := fs.Sub(web.StaticFiles, "static")
 		f, err := staticFS.Open("docs.html")
@@ -42,6 +73,14 @@ func (s *Server) Routes() *http.ServeMux {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("ok\n"))
 	})
+
+	// WebAuthn passkey routes
+	if webauthnHandler != nil {
+		mux.HandleFunc("POST /auth/register/begin", webauthnHandler.RegisterBegin)
+		mux.HandleFunc("POST /auth/register/finish", webauthnHandler.RegisterFinish)
+		mux.HandleFunc("POST /auth/login/begin", webauthnHandler.LoginBegin)
+		mux.HandleFunc("POST /auth/login/finish", webauthnHandler.LoginFinish)
+	}
 
 	// Slack slash command
 	if s.slackSigningSecret != "" {

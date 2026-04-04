@@ -2,11 +2,14 @@ package api
 
 import (
 	"encoding/json"
-	"log"
+	"log/slog"
 	"net/http"
+	"path/filepath"
+	"strconv"
 	"sync"
 	"time"
 
+	"github.com/stahnma/therm-pro/internal/config"
 	"github.com/stahnma/therm-pro/internal/consul"
 	"github.com/stahnma/therm-pro/internal/cook"
 	"github.com/stahnma/therm-pro/internal/firmware"
@@ -24,18 +27,19 @@ type ClientStatus struct {
 
 // Server holds all dependencies for the HTTP API.
 type Server struct {
-	addr         string
-	session      *cook.Session
-	alerts       *cook.AlertEngine
+	addr               string
+	session            *cook.Session
+	alerts             *cook.AlertEngine
 	slack              *slack.Client
 	slackSigningSecret string
 	slackBotToken      string
 	firmware           *firmware.Store
 	sessionPath        string
 	gitCommit          string
-	wsClients    map[*wsClient]bool
-	wsMu         sync.Mutex
-	clientStatus ClientStatus
+	wsClients          map[*wsClient]bool
+	wsMu               sync.Mutex
+	clientStatus       ClientStatus
+	config             *config.Config
 }
 
 // ProbeReading represents a single probe temperature reading from the device.
@@ -59,25 +63,28 @@ type AlertPayload struct {
 	Alert   cook.AlertConfig `json:"alert"`
 }
 
-// NewServer creates a new Server with the given address, Slack webhook URL,
-// and session persistence path.
-func NewServer(addr, slackWebhook, slackSigningSecret, slackBotToken, sessionPath, firmwareDir, gitCommit string) *Server {
+// NewServer creates a new Server from the given configuration.
+func NewServer(cfg *config.Config, gitCommit string) *Server {
+	sessionPath := filepath.Join(cfg.DataDir, "session.json")
+	firmwareDir := filepath.Join(cfg.DataDir, "firmware")
+
 	session, err := cook.Load(sessionPath)
 	if err != nil {
-		log.Printf("warning: could not load session: %v", err)
+		slog.Warn("could not load session", "error", err)
 		session = cook.NewSession()
 	}
 	return &Server{
-		addr:               addr,
+		addr:               ":" + strconv.Itoa(cfg.Port),
 		session:            session,
 		alerts:             cook.NewAlertEngine(),
-		slack:              slack.NewClient(slackWebhook),
-		slackSigningSecret: slackSigningSecret,
-		slackBotToken:      slackBotToken,
+		slack:              slack.NewClient(cfg.Slack.Webhook),
+		slackSigningSecret: cfg.Slack.SigningSecret,
+		slackBotToken:      cfg.Slack.BotToken,
 		firmware:           firmware.NewStore(firmwareDir),
 		sessionPath:        sessionPath,
 		gitCommit:          gitCommit,
 		wsClients:          make(map[*wsClient]bool),
+		config:             cfg,
 	}
 }
 
@@ -120,7 +127,7 @@ func (s *Server) handlePostData(w http.ResponseWriter, r *http.Request) {
 	// Persist session to disk.
 	if s.sessionPath != "" {
 		if err := cook.Save(s.session, s.sessionPath); err != nil {
-			log.Printf("warning: could not save session: %v", err)
+			slog.Warn("could not save session", "error", err)
 		}
 	}
 
@@ -129,7 +136,7 @@ func (s *Server) handlePostData(w http.ResponseWriter, r *http.Request) {
 	for i := 0; i < cook.NumProbes; i++ {
 		fired := s.alerts.Evaluate(s.session.Probes[i])
 		for _, alert := range fired {
-			log.Printf("ALERT: %s", alert.Message)
+			slog.Info("alert fired", "message", alert.Message)
 			go s.slack.SendAlert(alert, temps)
 		}
 	}
@@ -168,10 +175,10 @@ func (s *Server) handleDiagnostics(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type diagnostics struct {
-		Status          string        `json:"status"`
-		ServerFirmware  int           `json:"server_firmware_version"`
-		Consul          consul.Status `json:"consul"`
-		ESP32           espStatus     `json:"esp32"`
+		Status         string        `json:"status"`
+		ServerFirmware int           `json:"server_firmware_version"`
+		Consul         consul.Status `json:"consul"`
+		ESP32          espStatus     `json:"esp32"`
 	}
 
 	// Overall status starts as ok.
@@ -242,4 +249,3 @@ func (s *Server) handlePostAlerts(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 }
-

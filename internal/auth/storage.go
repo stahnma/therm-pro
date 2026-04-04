@@ -1,0 +1,92 @@
+package auth
+
+import (
+	"bytes"
+	"encoding/json"
+	"os"
+	"sync"
+	"time"
+)
+
+// StoredCredential represents a persisted WebAuthn credential.
+type StoredCredential struct {
+	ID             []byte    `json:"id"`
+	PublicKey      []byte    `json:"public_key"`
+	BackupEligible bool      `json:"backup_eligible"`
+	SignCount      uint32    `json:"sign_count"`
+	Label          string    `json:"label"`
+	CreatedAt      time.Time `json:"created_at"`
+}
+
+// CredentialStore persists WebAuthn credentials to a JSON file.
+type CredentialStore struct {
+	mu    sync.RWMutex
+	path  string
+	creds []StoredCredential
+}
+
+// NewCredentialStore creates a new CredentialStore backed by the given file path.
+func NewCredentialStore(path string) *CredentialStore {
+	return &CredentialStore{path: path}
+}
+
+// Load reads credentials from disk. If the file does not exist, this is a no-op.
+func (s *CredentialStore) Load() error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	data, err := os.ReadFile(s.path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			s.creds = nil
+			return nil
+		}
+		return err
+	}
+	return json.Unmarshal(data, &s.creds)
+}
+
+// Save writes the current credentials to disk atomically.
+func (s *CredentialStore) Save() error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	data, err := json.MarshalIndent(s.creds, "", "  ")
+	if err != nil {
+		return err
+	}
+	tmp := s.path + ".tmp"
+	if err := os.WriteFile(tmp, data, 0600); err != nil {
+		return err
+	}
+	return os.Rename(tmp, s.path)
+}
+
+// Add appends a credential to the store.
+func (s *CredentialStore) Add(cred StoredCredential) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if cred.CreatedAt.IsZero() {
+		cred.CreatedAt = time.Now()
+	}
+	s.creds = append(s.creds, cred)
+}
+
+// UpdateSignCount updates the sign count for the credential with the given ID.
+func (s *CredentialStore) UpdateSignCount(id []byte, count uint32) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for i := range s.creds {
+		if bytes.Equal(s.creds[i].ID, id) {
+			s.creds[i].SignCount = count
+			return
+		}
+	}
+}
+
+// Credentials returns a copy of all stored credentials.
+func (s *CredentialStore) Credentials() []StoredCredential {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return append([]StoredCredential(nil), s.creds...)
+}

@@ -3,7 +3,7 @@ package api
 
 import (
 	"encoding/json"
-	"log"
+	"log/slog"
 	"net/http"
 
 	"github.com/gorilla/websocket"
@@ -22,7 +22,7 @@ type wsClient struct {
 func (s *Server) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Printf("websocket upgrade: %v", err)
+		slog.Error("websocket upgrade failed", "error", err)
 		return
 	}
 

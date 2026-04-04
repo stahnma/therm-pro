@@ -20,6 +20,8 @@
       <a href="/api/docs" class="btn btn-docs" title="API Documentation">API</a>
       <button id="toggle-theme" class="btn btn-theme" title="Toggle Light / Dark mode">Dark</button>
       <button id="toggle-unit" class="btn btn-unit" title="Toggle Fahrenheit / Celsius">&#176;F</button>
+      <button id="sign-in" class="btn btn-auth" style="display:none" onclick="signIn()">Sign In</button>
+      <button id="register-passkey" class="btn btn-auth" style="display:none" onclick="registerPasskey()">Register Passkey</button>
       <button id="reset-cook" class="btn btn-reset">Reset Cook</button>
     </div>
   </header>
@@ -60,6 +62,21 @@
         <div class="modal-buttons">
           <button type="button" id="modal-cancel" class="btn btn-cancel">Cancel</button>
           <button type="submit" class="btn btn-save">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- PIN Modal -->
+  <div id="pin-overlay" class="modal-overlay hidden">
+    <div class="modal">
+      <h2>Enter Registration PIN</h2>
+      <form id="pin-form" autocomplete="off">
+        <label for="pin-input">PIN</label>
+        <input type="password" id="pin-input" inputmode="numeric" maxlength="20" required>
+        <div class="modal-buttons">
+          <button type="button" id="pin-cancel" class="btn btn-cancel">Cancel</button>
+          <button type="submit" class="btn btn-save">Register</button>
         </div>
       </form>
     </div>

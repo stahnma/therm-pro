@@ -60,14 +60,38 @@ GOOS=linux GOARCH=amd64 make build    # x86_64
 
 The server listens on port 8088 by default and stores session data in `~/.therm-pro/session.json`.
 
-**Configuration via environment variables:**
+**Configuration** is loaded in layers (each overrides the previous):
+
+1. Built-in defaults
+2. `~/.therm-pro/config.yaml` (optional)
+3. `~/.therm-pro/.env` (optional)
+4. Environment variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `PORT` | `8088` | HTTP server port |
+| `THERM_PRO_REGISTRATION_PIN` | _(empty)_ | PIN required to register a new passkey (empty = registration disabled) |
+| `THERM_PRO_WEBAUTHN_ORIGIN` | `http://localhost:8088` | WebAuthn origin URL (set to your public URL for passkey auth; domain is derived automatically) |
+| `THERM_PRO_LOG_LEVEL` | `info` | Log verbosity: `debug`, `info`, `warn`, `error` |
 | `THERM_PRO_SLACK_WEBHOOK` | _(empty)_ | Slack incoming webhook URL for alerts |
 | `THERM_PRO_SLACK_SIGNING_SECRET` | _(empty)_ | Slack app signing secret (for `/tp25` slash command) |
 | `THERM_PRO_SLACK_BOT_TOKEN` | _(empty)_ | Slack bot token (for `/tp25` slash command) |
+
+Example `~/.therm-pro/config.yaml`:
+
+```yaml
+port: 8088
+registration_pin: "1234"
+webauthn_origin: "http://localhost:8088"
+log_level: "info"
+
+slack:
+  webhook: ""
+  signing_secret: ""
+  bot_token: ""
+```
+
+**Access control:** Unauthenticated users see a read-only dashboard. Authenticate with a [passkey](#passkey-authentication) for full read/write access. See [Access Control](#access-control) below.
 
 The server automatically registers itself with the local Consul agent (`localhost:8500`) on startup. If Consul isn't running, the server logs a warning and operates normally.
 
@@ -182,6 +206,43 @@ cloudflared tunnel --url http://localhost:8088 run tp25
 
 For development/testing, you can use [ngrok](https://ngrok.com/) instead: `ngrok http 8088`.
 
+### Access Control
+
+The dashboard has two access tiers:
+
+| Tier | Who | Access |
+|------|-----|--------|
+| **Authenticated** | Users with a registered passkey | Full read/write via session cookie |
+| **Unauthenticated** | Everyone else | Read-only — can view temps, chart, battery |
+
+Protected actions (reset cook, set alerts, upload firmware) require a valid passkey session.
+
+### Passkey Authentication
+
+Passkeys let you authenticate using 1Password, Face ID, or any FIDO2 authenticator.
+
+**Register a passkey:**
+
+1. Set `registration_pin` in your config (or `THERM_PRO_REGISTRATION_PIN` env var)
+2. Open the dashboard and click "Register Passkey" in the header
+3. Enter the PIN when prompted
+4. Follow the browser/authenticator prompt
+
+Registration is disabled when no PIN is configured.
+
+**Sign in:**
+
+1. Open the dashboard from anywhere
+2. Click "Sign In" in the header
+3. Your authenticator (1Password, etc.) handles the rest
+4. Session lasts 24 hours
+
+**Production setup:** When running behind a reverse proxy (e.g., Cloudflare Tunnel), set `THERM_PRO_WEBAUTHN_ORIGIN` to your public URL (the domain is derived automatically):
+
+```bash
+THERM_PRO_WEBAUTHN_ORIGIN=https://tp25.yourdomain.com
+```
+
 ### Network Setup
 
 The server runs on your local network. The ESP32 and your phone/laptop need to be on the same network (or have routes to the server).
@@ -260,6 +321,26 @@ The top-level `status` is `"ok"` when everything is healthy, or `"degraded"` whe
 | ESP32 stopped sending data (>30s) | `esp32.status: "stale"` with `data_age` showing how long |
 | ESP32 can't find the TP25 | `esp32.ble_connected: false`, `esp32.status: "ble_disconnected"` |
 | Firmware version mismatch | Compare `server_firmware_version` vs `esp32.firmware_version` |
+
+</details>
+
+<details>
+<summary>Logging</summary>
+
+The server uses structured logging (`log/slog`) written to stderr. Set `THERM_PRO_LOG_LEVEL` to control verbosity:
+
+```bash
+# Debug logging — shows HTTP requests, session validation, network checks
+THERM_PRO_LOG_LEVEL=debug ./bin/therm-pro-server
+
+# Default — server lifecycle, auth events, alerts
+THERM_PRO_LOG_LEVEL=info ./bin/therm-pro-server
+
+# Quiet — only warnings and errors
+THERM_PRO_LOG_LEVEL=warn ./bin/therm-pro-server
+```
+
+Debug mode is especially useful for diagnosing WebAuthn passkey failures through Cloudflare tunnels — it logs each step of the login/registration ceremony with remote address and error details.
 
 </details>
 

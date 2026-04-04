@@ -107,7 +107,7 @@ func RenderSessionChart(history []cook.Reading, probes [4]cook.Probe) ([]byte, e
 			Style: chart.Style{
 				FontColor: lightText,
 			},
-			Ticks:          generateHourTicks(sessionStart, history),
+			Ticks: generateHourTicks(sessionStart, history),
 			GridMajorStyle: chart.Style{
 				StrokeColor: gridLine,
 				StrokeWidth: 1,
