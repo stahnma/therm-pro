@@ -2,10 +2,11 @@
 
 **Issue:** #5
 **Date:** 2026-04-03
+**Status:** SUPERSEDED — see [2026-04-03-registration-pin.md](2026-04-03-registration-pin.md) for the current design.
 
 ## Revision: 2026-04-03
 
-The original three-tier access model (home network / passkey / public) was replaced with a two-tier model (authenticated / unauthenticated). The home network IP check (`allowed_cidr`, `trust_proxy`, `X-Forwarded-For`) was removed because it does not work through Cloudflare Tunnel — the forwarded IP is the client's public IP, not a LAN IP. Passkey registration is now gated by a configurable `registration_pin` instead of requiring home network access.
+The original three-tier access model (home network / passkey / public) described below was replaced with a two-tier model (authenticated / unauthenticated). The home network IP check (`allowed_cidr`, `trust_proxy`, `X-Forwarded-For`) was removed because it does not work through Cloudflare Tunnel — the forwarded IP is the client's public IP, not a LAN IP. Passkey registration is now gated by a configurable `registration_pin` instead of requiring home network access. **The rest of this document is kept for historical context only — it does not reflect the current implementation.**
 
 ## Goal
 
