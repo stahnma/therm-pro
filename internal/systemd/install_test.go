@@ -1,6 +1,8 @@
 package systemd
 
 import (
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -42,7 +44,7 @@ func TestInstallDryRun(t *testing.T) {
 		DataDir: "/var/lib/therm-pro",
 		DryRun:  true,
 	}
-	actions, err := Install(opts, "/tmp/fake-binary")
+	actions, err := Install(opts, "/tmp/fake-binary", "/tmp/fake-datadir")
 	if err != nil {
 		t.Fatalf("Install dry-run: %v", err)
 	}
@@ -50,10 +52,57 @@ func TestInstallDryRun(t *testing.T) {
 		t.Fatal("expected actions, got none")
 	}
 	joined := strings.Join(actions, "\n")
-	for _, want := range []string{"copy", "useradd", "mkdir", "write", "daemon-reload", "enable"} {
+	for _, want := range []string{"copy", "useradd", "mkdir", "chown", "write", "daemon-reload", "enable"} {
 		if !strings.Contains(strings.ToLower(joined), want) {
 			t.Errorf("missing action containing %q in:\n%s", want, joined)
 		}
+	}
+}
+
+func TestInstallDryRunCopiesFirmware(t *testing.T) {
+	srcDir := t.TempDir()
+	fwDir := filepath.Join(srcDir, "firmware")
+	os.MkdirAll(fwDir, 0755)
+	os.WriteFile(filepath.Join(fwDir, "firmware.bin"), []byte("fake"), 0644)
+	os.WriteFile(filepath.Join(fwDir, "version.json"), []byte("{}"), 0644)
+
+	opts := Options{
+		BinPath: "/usr/local/bin/therm-pro-server",
+		User:    "therm-pro",
+		Port:    8088,
+		DataDir: "/var/lib/therm-pro",
+		DryRun:  true,
+	}
+	actions, err := Install(opts, "/tmp/fake-binary", srcDir)
+	if err != nil {
+		t.Fatalf("Install dry-run: %v", err)
+	}
+	joined := strings.Join(actions, "\n")
+	if !strings.Contains(joined, "firmware.bin") {
+		t.Errorf("expected firmware.bin copy action, got:\n%s", joined)
+	}
+	if !strings.Contains(joined, "version.json") {
+		t.Errorf("expected version.json copy action, got:\n%s", joined)
+	}
+}
+
+func TestInstallDryRunSkipsMissingFirmware(t *testing.T) {
+	srcDir := t.TempDir() // no firmware subdir
+
+	opts := Options{
+		BinPath: "/usr/local/bin/therm-pro-server",
+		User:    "therm-pro",
+		Port:    8088,
+		DataDir: "/var/lib/therm-pro",
+		DryRun:  true,
+	}
+	actions, err := Install(opts, "/tmp/fake-binary", srcDir)
+	if err != nil {
+		t.Fatalf("Install dry-run: %v", err)
+	}
+	joined := strings.Join(actions, "\n")
+	if strings.Contains(joined, "firmware") {
+		t.Errorf("expected no firmware actions, got:\n%s", joined)
 	}
 }
 

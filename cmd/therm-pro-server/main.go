@@ -165,7 +165,7 @@ func runInstall() {
 		DryRun:  *dryRun,
 	}
 
-	actions, err := systemd.Install(opts, self)
+	actions, err := systemd.Install(opts, self, cfg.DataDir)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)

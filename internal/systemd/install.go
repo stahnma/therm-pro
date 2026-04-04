@@ -50,8 +50,10 @@ func renderUnit(opts Options) (*bytes.Buffer, error) {
 }
 
 // Install performs the full systemd installation. srcBinary is the path to the
-// currently-running binary. Returns a list of action descriptions.
-func Install(opts Options, srcBinary string) ([]string, error) {
+// currently-running binary. srcDataDir is the current data directory (e.g.
+// ~/.therm-pro) from which firmware and other data files are copied.
+// Returns a list of action descriptions.
+func Install(opts Options, srcBinary string, srcDataDir string) ([]string, error) {
 	var actions []string
 	do := func(desc string, fn func() error) error {
 		actions = append(actions, desc)
@@ -76,13 +78,35 @@ func Install(opts Options, srcBinary string) ([]string, error) {
 	}
 
 	// 3. Create data directory
-	if err := do(fmt.Sprintf("mkdir -p %s (owned by %s)", opts.DataDir, opts.User), func() error {
-		return createDataDir(opts.DataDir, opts.User)
+	if err := do(fmt.Sprintf("mkdir -p %s", opts.DataDir), func() error {
+		return createDataDir(opts.DataDir)
 	}); err != nil {
 		return actions, fmt.Errorf("create data dir: %w", err)
 	}
 
-	// 4. Render and write unit file
+	// 4. Copy firmware if present in source data dir
+	srcFirmwareDir := filepath.Join(srcDataDir, "firmware")
+	dstFirmwareDir := filepath.Join(opts.DataDir, "firmware")
+	for _, name := range []string{"firmware.bin", "version.json"} {
+		srcPath := filepath.Join(srcFirmwareDir, name)
+		if _, err := os.Stat(srcPath); err == nil {
+			dstPath := filepath.Join(dstFirmwareDir, name)
+			if err := do(fmt.Sprintf("copy %s -> %s", srcPath, dstPath), func() error {
+				return copyFile(srcPath, dstPath, 0644)
+			}); err != nil {
+				return actions, fmt.Errorf("copy firmware: %w", err)
+			}
+		}
+	}
+
+	// 5. Chown data dir (after firmware copy so new files are covered)
+	if err := do(fmt.Sprintf("chown %s %s", opts.User, opts.DataDir), func() error {
+		return chownTree(opts.DataDir, opts.User)
+	}); err != nil {
+		return actions, fmt.Errorf("chown data dir: %w", err)
+	}
+
+	// 6. Render and write unit file
 	unit, err := renderUnit(opts)
 	if err != nil {
 		return actions, fmt.Errorf("render unit: %w", err)
@@ -93,7 +117,7 @@ func Install(opts Options, srcBinary string) ([]string, error) {
 		return actions, fmt.Errorf("write unit: %w", err)
 	}
 
-	// 5. Reload and enable
+	// 7. Reload and enable
 	if err := do("systemctl daemon-reload", func() error {
 		return exec.Command("systemctl", "daemon-reload").Run()
 	}); err != nil {
@@ -135,9 +159,10 @@ func createUser(user, homeDir string) error {
 	return exec.Command("useradd", "--system", "--home-dir", homeDir, "--shell", "/usr/sbin/nologin", user).Run()
 }
 
-func createDataDir(dir, user string) error {
-	if err := os.MkdirAll(dir, 0750); err != nil {
-		return err
-	}
-	return exec.Command("chown", user+":"+user, dir).Run()
+func createDataDir(dir string) error {
+	return os.MkdirAll(dir, 0750)
+}
+
+func chownTree(dir, user string) error {
+	return exec.Command("chown", "-R", user+":"+user, dir).Run()
 }
