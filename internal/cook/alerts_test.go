@@ -34,7 +34,7 @@ func TestAlertNotRepeated(t *testing.T) {
 		Connected:   true,
 		Alert:       AlertConfig{TargetTemp: floatPtr(203.0)},
 	}
-	_ = e.Evaluate(probe)  // first time fires
+	_ = e.Evaluate(probe)       // first time fires
 	alerts := e.Evaluate(probe) // second time should not
 	if len(alerts) != 0 {
 		t.Fatalf("expected 0 alerts (de-dup), got %d", len(alerts))

@@ -28,8 +28,8 @@ type serviceCheck struct {
 }
 
 var (
-	serviceID   string
-	consulAddr  string
+	serviceID      string
+	consulAddr     string
 	registeredIP   string
 	registeredPort int
 )

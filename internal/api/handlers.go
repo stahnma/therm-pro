@@ -175,10 +175,10 @@ func (s *Server) handleDiagnostics(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type diagnostics struct {
-		Status          string        `json:"status"`
-		ServerFirmware  int           `json:"server_firmware_version"`
-		Consul          consul.Status `json:"consul"`
-		ESP32           espStatus     `json:"esp32"`
+		Status         string        `json:"status"`
+		ServerFirmware int           `json:"server_firmware_version"`
+		Consul         consul.Status `json:"consul"`
+		ESP32          espStatus     `json:"esp32"`
 	}
 
 	// Overall status starts as ok.
@@ -249,4 +249,3 @@ func (s *Server) handlePostAlerts(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 }
-

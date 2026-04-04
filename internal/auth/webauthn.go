@@ -17,9 +17,9 @@ type thermProUser struct {
 	credentials []webauthn.Credential
 }
 
-func (u *thermProUser) WebAuthnID() []byte          { return []byte("therm-pro-user") }
-func (u *thermProUser) WebAuthnName() string         { return "therm-pro" }
-func (u *thermProUser) WebAuthnDisplayName() string  { return "Therm-Pro User" }
+func (u *thermProUser) WebAuthnID() []byte                         { return []byte("therm-pro-user") }
+func (u *thermProUser) WebAuthnName() string                       { return "therm-pro" }
+func (u *thermProUser) WebAuthnDisplayName() string                { return "Therm-Pro User" }
 func (u *thermProUser) WebAuthnCredentials() []webauthn.Credential { return u.credentials }
 
 const challengeTTL = 5 * time.Minute
