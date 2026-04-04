@@ -90,6 +90,9 @@ func (h *WebAuthnHandler) user() *thermProUser {
 			Flags: webauthn.CredentialFlags{
 				BackupEligible: sc.BackupEligible,
 			},
+			Authenticator: webauthn.Authenticator{
+				SignCount: sc.SignCount,
+			},
 		}
 	}
 	return &thermProUser{credentials: creds}
@@ -180,6 +183,7 @@ func (h *WebAuthnHandler) RegisterFinish(w http.ResponseWriter, r *http.Request)
 		ID:             credential.ID,
 		PublicKey:      credential.PublicKey,
 		BackupEligible: credential.Flags.BackupEligible,
+		SignCount:      credential.Authenticator.SignCount,
 		Label:          "Passkey",
 	})
 	if err := h.credStore.Save(); err != nil {
@@ -237,11 +241,16 @@ func (h *WebAuthnHandler) LoginFinish(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := h.wa.FinishLogin(user, *sessionData, r)
+	credential, err := h.wa.FinishLogin(user, *sessionData, r)
 	if err != nil {
 		h.log.Error("login verification failed", "error", err)
 		jsonError(w, "login verification failed", http.StatusBadRequest)
 		return
+	}
+
+	h.credStore.UpdateSignCount(credential.ID, credential.Authenticator.SignCount)
+	if err := h.credStore.Save(); err != nil {
+		h.log.Error("failed to update sign count", "error", err)
 	}
 
 	SetSessionCookie(w, h.sessionSecret)

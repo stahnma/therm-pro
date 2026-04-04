@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"bytes"
 	"encoding/json"
 	"os"
 	"sync"
@@ -12,6 +13,7 @@ type StoredCredential struct {
 	ID             []byte    `json:"id"`
 	PublicKey      []byte    `json:"public_key"`
 	BackupEligible bool      `json:"backup_eligible"`
+	SignCount      uint32    `json:"sign_count"`
 	Label          string    `json:"label"`
 	CreatedAt      time.Time `json:"created_at"`
 }
@@ -68,6 +70,18 @@ func (s *CredentialStore) Add(cred StoredCredential) {
 		cred.CreatedAt = time.Now()
 	}
 	s.creds = append(s.creds, cred)
+}
+
+// UpdateSignCount updates the sign count for the credential with the given ID.
+func (s *CredentialStore) UpdateSignCount(id []byte, count uint32) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for i := range s.creds {
+		if bytes.Equal(s.creds[i].ID, id) {
+			s.creds[i].SignCount = count
+			return
+		}
+	}
 }
 
 // Credentials returns a copy of all stored credentials.
