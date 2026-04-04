@@ -31,6 +31,29 @@ func TestRenderUnit(t *testing.T) {
 	}
 }
 
+func TestInstallDryRun(t *testing.T) {
+	opts := Options{
+		BinPath: "/usr/local/bin/therm-pro-server",
+		User:    "therm-pro",
+		Port:    8088,
+		DataDir: "/var/lib/therm-pro",
+		DryRun:  true,
+	}
+	actions, err := Install(opts, "/tmp/fake-binary")
+	if err != nil {
+		t.Fatalf("Install dry-run: %v", err)
+	}
+	if len(actions) == 0 {
+		t.Fatal("expected actions, got none")
+	}
+	joined := strings.Join(actions, "\n")
+	for _, want := range []string{"copy", "useradd", "mkdir", "write", "daemon-reload", "enable"} {
+		if !strings.Contains(strings.ToLower(joined), want) {
+			t.Errorf("missing action containing %q in:\n%s", want, joined)
+		}
+	}
+}
+
 func TestDefaultBinPath(t *testing.T) {
 	tests := []struct {
 		prefix string
