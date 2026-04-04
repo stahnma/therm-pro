@@ -44,7 +44,7 @@ func (s *CredentialStore) Load() error {
 	return json.Unmarshal(data, &s.creds)
 }
 
-// Save writes the current credentials to disk.
+// Save writes the current credentials to disk atomically.
 func (s *CredentialStore) Save() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -53,7 +53,11 @@ func (s *CredentialStore) Save() error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(s.path, data, 0600)
+	tmp := s.path + ".tmp"
+	if err := os.WriteFile(tmp, data, 0600); err != nil {
+		return err
+	}
+	return os.Rename(tmp, s.path)
 }
 
 // Add appends a credential to the store.
