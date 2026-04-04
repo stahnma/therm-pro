@@ -9,10 +9,11 @@ import (
 
 // StoredCredential represents a persisted WebAuthn credential.
 type StoredCredential struct {
-	ID        []byte    `json:"id"`
-	PublicKey []byte    `json:"public_key"`
-	Label     string    `json:"label"`
-	CreatedAt time.Time `json:"created_at"`
+	ID             []byte    `json:"id"`
+	PublicKey      []byte    `json:"public_key"`
+	BackupEligible bool      `json:"backup_eligible"`
+	Label          string    `json:"label"`
+	CreatedAt      time.Time `json:"created_at"`
 }
 
 // CredentialStore persists WebAuthn credentials to a JSON file.

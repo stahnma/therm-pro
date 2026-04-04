@@ -87,6 +87,9 @@ func (h *WebAuthnHandler) user() *thermProUser {
 		creds[i] = webauthn.Credential{
 			ID:        sc.ID,
 			PublicKey: sc.PublicKey,
+			Flags: webauthn.CredentialFlags{
+				BackupEligible: sc.BackupEligible,
+			},
 		}
 	}
 	return &thermProUser{credentials: creds}
@@ -177,9 +180,10 @@ func (h *WebAuthnHandler) RegisterFinish(w http.ResponseWriter, r *http.Request)
 	h.mu.Unlock()
 
 	h.credStore.Add(StoredCredential{
-		ID:        credential.ID,
-		PublicKey: credential.PublicKey,
-		Label:     "Passkey",
+		ID:             credential.ID,
+		PublicKey:      credential.PublicKey,
+		BackupEligible: credential.Flags.BackupEligible,
+		Label:          "Passkey",
 	})
 	if err := h.credStore.Save(); err != nil {
 		h.log.Error("failed to save credential", "error", err)
