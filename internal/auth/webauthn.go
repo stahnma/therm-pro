@@ -160,6 +160,7 @@ func (h *WebAuthnHandler) RegisterFinish(w http.ResponseWriter, r *http.Request)
 
 	h.mu.Lock()
 	sessionData := h.pendingValid()
+	h.pendingSession = nil
 	h.mu.Unlock()
 
 	if sessionData == nil {
@@ -174,10 +175,6 @@ func (h *WebAuthnHandler) RegisterFinish(w http.ResponseWriter, r *http.Request)
 		jsonError(w, "registration verification failed", http.StatusBadRequest)
 		return
 	}
-
-	h.mu.Lock()
-	h.pendingSession = nil
-	h.mu.Unlock()
 
 	h.credStore.Add(StoredCredential{
 		ID:             credential.ID,
@@ -231,6 +228,7 @@ func (h *WebAuthnHandler) LoginFinish(w http.ResponseWriter, r *http.Request) {
 
 	h.mu.Lock()
 	sessionData := h.pendingValid()
+	h.pendingSession = nil
 	h.mu.Unlock()
 
 	if sessionData == nil {
@@ -245,10 +243,6 @@ func (h *WebAuthnHandler) LoginFinish(w http.ResponseWriter, r *http.Request) {
 		jsonError(w, "login verification failed", http.StatusBadRequest)
 		return
 	}
-
-	h.mu.Lock()
-	h.pendingSession = nil
-	h.mu.Unlock()
 
 	SetSessionCookie(w, h.sessionSecret)
 	h.log.Info("login succeeded", "remote_addr", r.RemoteAddr)
