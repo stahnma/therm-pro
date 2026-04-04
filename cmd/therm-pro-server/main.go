@@ -4,6 +4,7 @@ package main
 import (
 	"bufio"
 	"context"
+	"flag"
 	"fmt"
 	"log"
 	"log/slog"
@@ -128,20 +129,17 @@ func main() {
 }
 
 func runInstall() {
-	dryRun := false
-	prefix := "/usr/local"
-	for i, arg := range os.Args[2:] {
-		switch {
-		case arg == "--dry-run":
-			dryRun = true
-		case arg == "--prefix" && i+1 < len(os.Args[2:]):
-			prefix = os.Args[2+i+1]
-		case strings.HasPrefix(arg, "--prefix="):
-			prefix = strings.TrimPrefix(arg, "--prefix=")
-		}
+	fs := flag.NewFlagSet("install", flag.ExitOnError)
+	fs.Usage = func() {
+		fmt.Fprintf(os.Stderr, "Usage: %s install [flags]\n\nInstall therm-pro-server as a systemd service.\n\nFlags:\n", os.Args[0])
+		fs.PrintDefaults()
 	}
+	dryRun := fs.Bool("dry-run", false, "print actions without executing")
+	prefix := fs.String("prefix", "/usr/local", "installation prefix (binary goes in <prefix>/bin/)")
+	port := fs.Int("port", 8088, "port for the service")
+	fs.Parse(os.Args[2:])
 
-	if os.Geteuid() != 0 && !dryRun {
+	if os.Geteuid() != 0 && !*dryRun {
 		fmt.Fprintln(os.Stderr, "error: install must be run as root (try sudo)")
 		os.Exit(1)
 	}
@@ -153,11 +151,11 @@ func runInstall() {
 	}
 
 	opts := systemd.Options{
-		BinPath: systemd.DefaultBinPath(prefix),
+		BinPath: systemd.DefaultBinPath(*prefix),
 		User:    "therm-pro",
-		Port:    8088,
+		Port:    *port,
 		DataDir: "/var/lib/therm-pro",
-		DryRun:  dryRun,
+		DryRun:  *dryRun,
 	}
 
 	actions, err := systemd.Install(opts, self)
@@ -166,13 +164,13 @@ func runInstall() {
 		os.Exit(1)
 	}
 
-	if dryRun {
+	if *dryRun {
 		fmt.Println("Dry run — actions that would be taken:")
 	}
 	for _, a := range actions {
 		fmt.Printf("  %s\n", a)
 	}
-	if !dryRun {
+	if !*dryRun {
 		fmt.Println("\nInstalled. Start with: systemctl start therm-pro-server")
 	}
 }

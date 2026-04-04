@@ -109,6 +109,9 @@ func Install(opts Options, srcBinary string) ([]string, error) {
 }
 
 func copyFile(src, dst string, perm os.FileMode) error {
+	if err := os.MkdirAll(filepath.Dir(dst), 0755); err != nil {
+		return err
+	}
 	in, err := os.Open(src)
 	if err != nil {
 		return err
@@ -118,9 +121,11 @@ func copyFile(src, dst string, perm os.FileMode) error {
 	if err != nil {
 		return err
 	}
-	defer out.Close()
-	_, err = io.Copy(out, in)
-	return err
+	if _, err := io.Copy(out, in); err != nil {
+		out.Close()
+		return err
+	}
+	return out.Close()
 }
 
 func createUser(user, homeDir string) error {
@@ -134,5 +139,5 @@ func createDataDir(dir, user string) error {
 	if err := os.MkdirAll(dir, 0750); err != nil {
 		return err
 	}
-	return exec.Command("chown", "-R", user+":"+user, dir).Run()
+	return exec.Command("chown", user+":"+user, dir).Run()
 }

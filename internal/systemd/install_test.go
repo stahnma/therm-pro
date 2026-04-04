@@ -54,6 +54,26 @@ func TestInstallDryRun(t *testing.T) {
 	}
 }
 
+func TestRenderUnitCustomPort(t *testing.T) {
+	opts := Options{
+		BinPath: "/opt/bin/therm-pro-server",
+		User:    "therm-pro",
+		Port:    9090,
+		DataDir: "/var/lib/therm-pro",
+	}
+	out, err := renderUnit(opts)
+	if err != nil {
+		t.Fatalf("renderUnit: %v", err)
+	}
+	s := out.String()
+	if !strings.Contains(s, "Environment=PORT=9090") {
+		t.Errorf("expected PORT=9090, got:\n%s", s)
+	}
+	if !strings.Contains(s, "ExecStart=/opt/bin/therm-pro-server") {
+		t.Errorf("expected ExecStart=/opt/bin/therm-pro-server, got:\n%s", s)
+	}
+}
+
 func TestDefaultBinPath(t *testing.T) {
 	tests := []struct {
 		prefix string
