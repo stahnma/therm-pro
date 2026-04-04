@@ -129,6 +129,13 @@ func main() {
 }
 
 func runInstall() {
+	// Load config to pick up port from config.yaml / .env / env vars.
+	cfg, err := config.Load("")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "warning: could not load config, using defaults: %v\n", err)
+		cfg = &config.Config{Port: 8088}
+	}
+
 	fs := flag.NewFlagSet("install", flag.ExitOnError)
 	fs.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage: %s install [flags]\n\nInstall therm-pro-server as a systemd service.\n\nFlags:\n", os.Args[0])
@@ -136,7 +143,7 @@ func runInstall() {
 	}
 	dryRun := fs.Bool("dry-run", false, "print actions without executing")
 	prefix := fs.String("prefix", "/usr/local", "installation prefix (binary goes in <prefix>/bin/)")
-	port := fs.Int("port", 8088, "port for the service")
+	port := fs.Int("port", cfg.Port, "port for the service")
 	fs.Parse(os.Args[2:])
 
 	if os.Geteuid() != 0 && !*dryRun {
