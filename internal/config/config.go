@@ -42,7 +42,10 @@ func Load(dataDir string) (*Config, error) {
 		"log_level":       "info",
 	}, "."), nil)
 
-	// Resolve data dir
+	// Resolve data dir: explicit arg > THERM_PRO_DATA_DIR > ~/.therm-pro
+	if dataDir == "" {
+		dataDir = os.Getenv("THERM_PRO_DATA_DIR")
+	}
 	if dataDir == "" {
 		home, _ := os.UserHomeDir()
 		dataDir = filepath.Join(home, ".therm-pro")

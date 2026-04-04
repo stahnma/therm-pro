@@ -29,6 +29,9 @@ func TestRenderUnit(t *testing.T) {
 	if !strings.Contains(s, "WorkingDirectory=/var/lib/therm-pro") {
 		t.Errorf("missing WorkingDirectory, got:\n%s", s)
 	}
+	if !strings.Contains(s, "Environment=THERM_PRO_DATA_DIR=/var/lib/therm-pro") {
+		t.Errorf("missing THERM_PRO_DATA_DIR, got:\n%s", s)
+	}
 }
 
 func TestInstallDryRun(t *testing.T) {

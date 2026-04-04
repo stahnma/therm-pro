@@ -12,6 +12,7 @@ Restart=on-failure
 RestartSec=5
 
 Environment=PORT={{.Port}}
+Environment=THERM_PRO_DATA_DIR={{.DataDir}}
 
 StateDirectory=therm-pro
 WorkingDirectory={{.DataDir}}
