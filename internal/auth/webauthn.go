@@ -150,7 +150,9 @@ func (h *WebAuthnHandler) RegisterBegin(w http.ResponseWriter, r *http.Request) 
 
 	h.log.Debug("register begin: challenge issued")
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(creation)
+	if err := json.NewEncoder(w).Encode(creation); err != nil {
+		h.log.Error("failed to write response", "error", err)
+	}
 }
 
 // RegisterFinish completes the WebAuthn registration ceremony.
@@ -194,7 +196,9 @@ func (h *WebAuthnHandler) RegisterFinish(w http.ResponseWriter, r *http.Request)
 
 	h.log.Info("passkey registered", "remote_addr", r.RemoteAddr)
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+	if err := json.NewEncoder(w).Encode(map[string]string{"status": "ok"}); err != nil {
+		h.log.Error("failed to write response", "error", err)
+	}
 }
 
 // LoginBegin starts the WebAuthn login ceremony.
@@ -222,7 +226,9 @@ func (h *WebAuthnHandler) LoginBegin(w http.ResponseWriter, r *http.Request) {
 
 	h.log.Debug("login begin: challenge issued")
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(assertion)
+	if err := json.NewEncoder(w).Encode(assertion); err != nil {
+		h.log.Error("failed to write response", "error", err)
+	}
 }
 
 // LoginFinish completes the WebAuthn login ceremony and sets a session cookie.
@@ -257,7 +263,9 @@ func (h *WebAuthnHandler) LoginFinish(w http.ResponseWriter, r *http.Request) {
 	h.log.Info("login succeeded", "remote_addr", r.RemoteAddr)
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+	if err := json.NewEncoder(w).Encode(map[string]string{"status": "ok"}); err != nil {
+		h.log.Error("failed to write response", "error", err)
+	}
 }
 
 // ValidateSession checks whether the request carries a valid session cookie.

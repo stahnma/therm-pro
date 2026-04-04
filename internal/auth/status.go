@@ -27,6 +27,8 @@ func StatusHandler(validateSession SessionValidator, registrationPIN string) htt
 		slog.Debug("auth status", "role", resp.Role, "can_register", resp.CanRegister, "is_authed", isAuthed, "remote_addr", r.RemoteAddr)
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		if err := json.NewEncoder(w).Encode(resp); err != nil {
+			slog.Error("failed to write auth status response", "error", err)
+		}
 	}
 }
