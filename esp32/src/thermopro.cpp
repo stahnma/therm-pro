@@ -34,16 +34,26 @@ void ThermoPro::notifyCallback(NimBLERemoteCharacteristic* pChar,
 bool ThermoPro::scan() {
     NimBLEScan* scan = NimBLEDevice::getScan();
     scan->setActiveScan(true);
+
+    Serial.println("Scanning BLE devices...");
     NimBLEScanResults results = scan->start(10);
 
     for (int i = 0; i < results.getCount(); i++) {
         NimBLEAdvertisedDevice adv = results.getDevice(i);
-        if (adv.getName() == "Thermopro") {
+        String name = adv.getName().c_str();
+
+        if (name == "TP25" || name == "Thermopro" || name == "ThermoPro") {
             device = new NimBLEAdvertisedDevice(adv);
-            Serial.println("Found ThermoPro TP25");
+            Serial.printf(
+                "Found ThermoPro TP25: name='%s' address=%s rssi=%d\n",
+                name.c_str(),
+                adv.getAddress().toString().c_str(),
+                adv.getRSSI()
+            );
             return true;
         }
     }
+
     Serial.println("ThermoPro not found");
     return false;
 }
