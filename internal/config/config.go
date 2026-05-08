@@ -27,6 +27,7 @@ type Config struct {
 	DataDir         string      `koanf:"data_dir"`
 	WebAuthnOrigin  string      `koanf:"webauthn_origin"`
 	LogLevel        string      `koanf:"log_level"`
+	ConsulTags      []string    `koanf:"consul_tags"`
 }
 
 // Load reads config from defaults, then config.yaml in dataDir (if present),

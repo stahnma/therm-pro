@@ -105,7 +105,7 @@ func main() {
 	srv := api.NewServer(cfg, GitCommit)
 	mux := srv.Routes()
 
-	if err := consul.Register(cfg.Port); err != nil {
+	if err := consul.Register(cfg.Port, cfg.ConsulTags); err != nil {
 		slog.Warn("consul registration failed", "error", err)
 	}
 

@@ -18,6 +18,7 @@ type serviceRegistration struct {
 	Name    string       `json:"Name"`
 	Address string       `json:"Address"`
 	Port    int          `json:"Port"`
+	Tags    []string     `json:"Tags,omitempty"`
 	Check   serviceCheck `json:"Check"`
 }
 
@@ -50,7 +51,7 @@ func lanIP() (string, error) {
 
 // Register registers the tp25 service with the local Consul agent.
 // It auto-detects the LAN IP and uses localhost:8500 for the Consul agent.
-func Register(port int) error {
+func Register(port int, tags []string) error {
 	consulAddr = defaultConsulAddr
 
 	ip, err := lanIP()
@@ -66,6 +67,7 @@ func Register(port int) error {
 		Name:    "tp25",
 		Address: ip,
 		Port:    port,
+		Tags:    tags,
 		Check: serviceCheck{
 			HTTP:     fmt.Sprintf("http://%s:%d/healthz", ip, port),
 			Interval: "10s",
