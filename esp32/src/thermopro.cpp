@@ -38,13 +38,13 @@ bool ThermoPro::scan() {
 
     for (int i = 0; i < results.getCount(); i++) {
         NimBLEAdvertisedDevice adv = results.getDevice(i);
-        if (adv.getName() == "Thermopro") {
+        if (adv.getName() == BLE_NAME) {
             device = new NimBLEAdvertisedDevice(adv);
-            Serial.println("Found ThermoPro TP25");
+            Serial.printf("Found %s\n", BLE_NAME);
             return true;
         }
     }
-    Serial.println("ThermoPro not found");
+    Serial.printf("%s not found\n", BLE_NAME);
     return false;
 }
 
@@ -57,15 +57,15 @@ bool ThermoPro::connect() {
         return false;
     }
 
-    NimBLERemoteService* svc = client->getService(TP25_SERVICE_UUID);
+    NimBLERemoteService* svc = client->getService(BLE_SERVICE_UUID);
     if (!svc) {
         Serial.println("Service not found");
         client->disconnect();
         return false;
     }
 
-    writeChar = svc->getCharacteristic(TP25_WRITE_CHAR_UUID);
-    notifyChar = svc->getCharacteristic(TP25_NOTIFY_CHAR_UUID);
+    writeChar = svc->getCharacteristic(BLE_WRITE_CHAR_UUID);
+    notifyChar = svc->getCharacteristic(BLE_NOTIFY_CHAR_UUID);
 
     if (!writeChar || !notifyChar) {
         Serial.println("Characteristics not found");

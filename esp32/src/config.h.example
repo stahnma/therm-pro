@@ -15,4 +15,11 @@
 // Hardware
 #define LED_PIN 2
 
+// BLE identifiers for the thermometer. Defaults match the ThermoPro TP25.
+// Discover values for a different unit with: `make esp32-scan`.
+#define BLE_NAME             "Thermopro"
+#define BLE_SERVICE_UUID     "1086fff0-3343-4817-8bb2-b32206336ce8"
+#define BLE_WRITE_CHAR_UUID  "1086fff1-3343-4817-8bb2-b32206336ce8"
+#define BLE_NOTIFY_CHAR_UUID "1086fff2-3343-4817-8bb2-b32206336ce8"
+
 #endif
