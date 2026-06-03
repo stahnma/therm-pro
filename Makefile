@@ -1,4 +1,4 @@
-.PHONY: help build run clean test fmt tidy esp32-config esp32-build esp32-flash esp32-upload esp32-monitor
+.PHONY: help build run clean test fmt tidy esp32-config esp32-build esp32-flash esp32-upload esp32-monitor esp32c3-build esp32c3-flash esp32c3-upload
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z0-9_-]+:.*##' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*##"}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
@@ -40,7 +40,7 @@ esp32-config: ## Generate esp32/src/config.h from env vars (ESP32_WIFI_SSID, ESP
 	@echo "Generated esp32/src/config.h"
 
 esp32-build: esp32-config ## Build ESP32 firmware (generates config.h first)
-	cd esp32 && pio run
+	cd esp32 && pio run -e esp32
 
 esp32-flash: esp32-build ## Build and flash ESP32 via USB (uses espflash)
 	espflash flash --chip esp32 esp32/.pio/build/esp32/firmware.elf
@@ -52,3 +52,14 @@ esp32-upload: esp32-build ## Build and upload firmware to server for OTA
 
 esp32-monitor: ## Monitor ESP32 serial output (uses espflash)
 	espflash monitor
+
+esp32c3-build: esp32-config ## Build ESP32-C3 firmware (set ESP32_LED_PIN=8 for DevKitM-1)
+	cd esp32 && pio run -e esp32c3
+
+esp32c3-flash: esp32c3-build ## Build and flash ESP32-C3 via USB (uses espflash)
+	espflash flash --chip esp32c3 esp32/.pio/build/esp32c3/firmware.elf
+
+esp32c3-upload: esp32c3-build ## Build and upload ESP32-C3 firmware to server for OTA
+	curl -X POST $${ESP32_SERVER_URL:-http://tp25.service.dc1.consul:8088}/api/firmware/upload \
+		-F "firmware=@esp32/.pio/build/esp32c3/firmware.bin" \
+		-F "version=$${ESP32_FIRMWARE_VERSION:-1}"
