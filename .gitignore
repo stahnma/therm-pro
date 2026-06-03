@@ -2,6 +2,7 @@ bin/
 esp32/.pio/
 esp32/.vscode/
 esp32/src/config.h
+esp32/.ble-config
 *.bin
 .DS_Store
 .env
