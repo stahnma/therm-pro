@@ -106,13 +106,56 @@ export ESP32_WIFI_PASS="your-wifi-password"
 # Optional: override if not using Consul DNS
 # export ESP32_SERVER_URL="http://192.168.1.100:8088"
 
-# Generate config, build, and flash in one step (connect ESP32 via USB first)
-make esp32-flash
+# Power on the Therm-Pro unit, then discover, build, and flash in one shot.
+# ESP32 board (DevKit V1, etc):
+make esp32-all
+
+# ESP32-C3 board (DevKitM-1, etc):
+make esp32c3-all
+```
+
+`make esp32-all` (and `esp32c3-all`) does three things:
+
+1. **Scans** for the Therm-Pro unit via BLE on your Mac, classifying each candidate by the protocol it speaks (`make esp32-scan`). Subsequent runs reuse the cached device address and skip the scan if it still responds.
+2. **Regenerates** `esp32/src/config.h` from your WiFi env vars plus the discovered BLE name / service UUID / characteristic UUIDs (`make esp32-config`).
+3. **Builds and flashes** the firmware over USB.
+
+If you'd rather run the steps individually:
+
+```bash
+make esp32-scan         # discover the unit, write esp32/.ble-config, regenerate config.h
+make esp32-flash        # build + flash (esp32) — uses whatever's currently in config.h
+make esp32c3-flash      # build + flash (esp32-c3)
 ```
 
 If you have Consul DNS forwarding set up, the default server URL of `http://tp25.service.dc1.consul:8088` resolves automatically. Otherwise, set `ESP32_SERVER_URL` to the server's LAN IP.
 
 The generated `esp32/src/config.h` is gitignored. A reference template is at `esp32/src/config.h.example`.
+
+#### BLE discovery fallbacks
+
+The default `esp32-scan` is a protocol probe: it filters out obvious noise (Apple/Samsung/Govee/etc. devices broadcast nearby), then connects to each remaining device and looks for the TP25 service UUID. Two fallbacks exist for unusual cases:
+
+```bash
+# Match by an advertised-name substring (default "thermo"):
+ESP32_SCAN_NAME=tp25 make esp32-scan-name
+
+# Two-pass diff scan — turn the unit off, run the command, follow the prompts to
+# power it on between passes. Reports only devices that newly appeared.
+make esp32-scan-diff
+```
+
+You can also bypass discovery and feed the values manually, same as any other config:
+
+```bash
+export ESP32_BLE_NAME="TP25"
+export ESP32_BLE_SERVICE_UUID="1086fff0-3343-4817-8bb2-b32206336ce8"
+export ESP32_BLE_WRITE_CHAR_UUID="1086fff1-3343-4817-8bb2-b32206336ce8"
+export ESP32_BLE_NOTIFY_CHAR_UUID="1086fff2-3343-4817-8bb2-b32206336ce8"
+make esp32-flash
+```
+
+If none of these are set and no `.ble-config` exists, the build falls back to the legacy ThermoPro TP25 defaults.
 
 ### 4. Open the Dashboard
 
@@ -373,9 +416,9 @@ Debug mode is especially useful for diagnosing WebAuthn passkey failures through
 <summary>Troubleshooting</summary>
 
 #### ESP32 won't connect to TP25
-- Make sure the TP25 is powered on and not connected to another device (phone app, etc.)
-- The TP25 advertises as "Thermopro" -- check serial monitor output for scan results
-- Try power cycling both the TP25 and ESP32
+- Make sure the unit is powered on and not connected to another device (phone app, etc.). iOS will silently auto-reconnect to a bonded unit in the background — toggle Bluetooth off on the phone if you're not sure.
+- Different revisions advertise as `"Thermopro"` or `"TP25"`. If the ESP32 serial monitor reports `"<name> not found"`, run `make esp32-scan` on a Mac in range of the unit to discover the correct values and regenerate `config.h`.
+- Try power-cycling both the unit and the ESP32.
 
 #### ESP32 can't reach the server
 - Verify WiFi credentials in `config.h`

@@ -92,19 +92,43 @@ export ESP32_WIFI_PASS="your-wifi-password"
 # Optional (these have defaults):
 # export ESP32_SERVER_URL="http://tp25.service.dc1.consul:8088"
 # export ESP32_FIRMWARE_VERSION=1
-# export ESP32_LED_PIN=2
+# export ESP32_LED_PIN=2                # 8 for ESP32-C3 DevKitM-1
+
+# Optional BLE overrides (default to legacy TP25 if unset):
+# export ESP32_BLE_NAME="TP25"
+# export ESP32_BLE_SERVICE_UUID="1086fff0-3343-4817-8bb2-b32206336ce8"
+# export ESP32_BLE_WRITE_CHAR_UUID="1086fff1-3343-4817-8bb2-b32206336ce8"
+# export ESP32_BLE_NOTIFY_CHAR_UUID="1086fff2-3343-4817-8bb2-b32206336ce8"
 ```
 
-Step-by-step build commands:
+Step-by-step build commands (substitute `esp32c3-` for `esp32-` to target the ESP32-C3 DevKitM-1):
 
 ```bash
-make esp32-config    # Generate config.h from env vars
+make esp32-scan      # BLE-discover the Therm-Pro unit, write esp32/.ble-config
+make esp32-config    # Generate config.h from env vars + .ble-config
 make esp32-build     # Compile firmware
 make esp32-flash     # Build + flash via USB
 make esp32-monitor   # Monitor serial output
+
+make esp32-all       # All of the above (scan → config → build → flash)
 ```
 
+`esp32-config` always re-reads `esp32/.ble-config` if it exists; shell env vars take precedence so you can override individual BLE fields ad hoc. With no overrides and no `.ble-config`, the legacy TP25 defaults are baked in.
+
 Flashing uses [espflash](https://github.com/esp-rs/espflash) (a Rust-based flasher provided by Flox) instead of PlatformIO's esptool, which avoids pyserial compatibility issues under nix.
+
+### BLE discovery (`therm-pro-scan`)
+
+`cmd/therm-pro-scan` is a small Go BLE central used by `make esp32-scan` to figure out the right name + UUIDs for a given Therm-Pro unit. It depends on `tinygo.org/x/bluetooth`, which on macOS uses CoreBluetooth via cgo (so `CGO_ENABLED=1` is required and the Makefile sets it).
+
+Modes:
+
+- `-probe` (default in `make esp32-scan`): scan, drop obvious consumer-brand noise, connect to each survivor, classify by service shape. HIGH if the device exposes the TP25 service UUID `1086fff0-…`; MEDIUM if it has a custom 128-bit service with a notify+write characteristic pair. Short-circuits on the first HIGH match.
+- `-name <substring>`: legacy filter — match by advertised local name (case-insensitive substring).
+- `-diff`: interactive two-pass scan. Takes a baseline, prompts for power-cycle, takes a second scan, reports devices that newly appeared.
+- `-list`: dump everything seen during the scan window, with advertised service UUIDs and manufacturer data.
+
+A successful probe writes `esp32/.ble-config` (gitignored) including `ESP32_BLE_ADDRESS` — the macOS CoreBluetooth UUID for the device. On the next run the scanner takes a fast path: it connects directly to the cached address and skips the scan entirely if the TP25 service is still present. If the device is gone (powered off, replaced, etc.) the direct connect times out and the code falls through to a full scan, no manual cache invalidation needed.
 
 ### PlatformIO build fails under Flox
 
