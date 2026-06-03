@@ -6,3 +6,4 @@ esp32/src/config.h
 .DS_Store
 .env
 .worktrees/
+issues
