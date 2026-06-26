@@ -92,10 +92,10 @@ export ESP32_WIFI_PASS="your-wifi-password"
 # Optional (these have defaults):
 # export ESP32_SERVER_URL="http://tp25.service.dc1.consul:8088"
 # export ESP32_FIRMWARE_VERSION=1
-# export ESP32_LED_PIN=2
+# export ESP32_LED_PIN=2                # 8 for ESP32-C3 DevKitM-1
 ```
 
-Step-by-step build commands:
+Step-by-step build commands (substitute `esp32c3-` for `esp32-` to target the ESP32-C3 DevKitM-1):
 
 ```bash
 make esp32-config    # Generate config.h from env vars

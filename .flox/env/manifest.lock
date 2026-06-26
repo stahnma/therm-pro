@@ -27,28 +27,28 @@
     {
       "attr_path": "espflash",
       "broken": false,
-      "derivation": "/nix/store/gwrv0gf95h40aq4n72kjwz5lwjsjp29k-espflash-4.3.0.drv",
+      "derivation": "/nix/store/84x3l31gvkj0l1bqvgl130h3r0cxdw3q-espflash-4.4.0.drv",
       "description": "Serial flasher utility for Espressif SoCs and modules based on esptool.py",
       "install_id": "espflash",
       "license": "[ MIT, Apache-2.0 ]",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
-      "name": "espflash-4.3.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=567a49d1913ce81ac6e9582e3553dd90a955875f",
+      "name": "espflash-4.4.0",
       "pname": "espflash",
-      "rev": "46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
-      "rev_count": 969196,
-      "rev_date": "2026-03-24T21:09:33Z",
-      "scrape_date": "2026-03-27T03:38:23.941273Z",
+      "rev": "567a49d1913ce81ac6e9582e3553dd90a955875f",
+      "rev_count": 1017464,
+      "rev_date": "2026-06-16T02:33:49Z",
+      "scrape_date": "2026-06-17T03:13:14.441802Z",
       "stabilities": [
         "staging",
         "unstable"
       ],
       "unfree": false,
-      "version": "4.3.0",
+      "version": "4.4.0",
       "outputs_to_install": [
         "out"
       ],
       "outputs": {
-        "out": "/nix/store/m1584h4x3k66p9pw3pzdy1dgph23njga-espflash-4.3.0"
+        "out": "/nix/store/8396444w9j8cx512996c8mn4rkl47ry5-espflash-4.4.0"
       },
       "system": "aarch64-darwin",
       "group": "toplevel",
@@ -57,28 +57,28 @@
     {
       "attr_path": "espflash",
       "broken": false,
-      "derivation": "/nix/store/hznmsj0jdm9qfp28g9xw3jdbdx667jvn-espflash-4.3.0.drv",
+      "derivation": "/nix/store/6wz1x5gq5p5dx96d7n68gskj2kr9x0zs-espflash-4.4.0.drv",
       "description": "Serial flasher utility for Espressif SoCs and modules based on esptool.py",
       "install_id": "espflash",
       "license": "[ MIT, Apache-2.0 ]",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
-      "name": "espflash-4.3.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=567a49d1913ce81ac6e9582e3553dd90a955875f",
+      "name": "espflash-4.4.0",
       "pname": "espflash",
-      "rev": "46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
-      "rev_count": 969196,
-      "rev_date": "2026-03-24T21:09:33Z",
-      "scrape_date": "2026-03-27T04:13:47.791243Z",
+      "rev": "567a49d1913ce81ac6e9582e3553dd90a955875f",
+      "rev_count": 1017464,
+      "rev_date": "2026-06-16T02:33:49Z",
+      "scrape_date": "2026-06-17T03:44:09.152885Z",
       "stabilities": [
         "staging",
         "unstable"
       ],
       "unfree": false,
-      "version": "4.3.0",
+      "version": "4.4.0",
       "outputs_to_install": [
         "out"
       ],
       "outputs": {
-        "out": "/nix/store/5dma8gizgk6c4mwv50p7kkzb62g3lc2a-espflash-4.3.0"
+        "out": "/nix/store/dq9iqj4rgr7713ixs824s3ji15j60z4z-espflash-4.4.0"
       },
       "system": "aarch64-linux",
       "group": "toplevel",
@@ -87,28 +87,28 @@
     {
       "attr_path": "espflash",
       "broken": false,
-      "derivation": "/nix/store/0pyp77scyd1brvncrl820s5igi0qjy17-espflash-4.3.0.drv",
+      "derivation": "/nix/store/2152izvk8sj7nzdw2wrxki8q8nl7cmgl-espflash-4.4.0.drv",
       "description": "Serial flasher utility for Espressif SoCs and modules based on esptool.py",
       "install_id": "espflash",
       "license": "[ MIT, Apache-2.0 ]",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
-      "name": "espflash-4.3.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=567a49d1913ce81ac6e9582e3553dd90a955875f",
+      "name": "espflash-4.4.0",
       "pname": "espflash",
-      "rev": "46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
-      "rev_count": 969196,
-      "rev_date": "2026-03-24T21:09:33Z",
-      "scrape_date": "2026-03-27T04:46:26.863159Z",
+      "rev": "567a49d1913ce81ac6e9582e3553dd90a955875f",
+      "rev_count": 1017464,
+      "rev_date": "2026-06-16T02:33:49Z",
+      "scrape_date": "2026-06-17T04:13:06.775648Z",
       "stabilities": [
         "staging",
         "unstable"
       ],
       "unfree": false,
-      "version": "4.3.0",
+      "version": "4.4.0",
       "outputs_to_install": [
         "out"
       ],
       "outputs": {
-        "out": "/nix/store/ci02azvkz14xzdd7903dwawpq5lp68zv-espflash-4.3.0"
+        "out": "/nix/store/1dn0zvpzrrfpigvnm1arg290pm3fjfv1-espflash-4.4.0"
       },
       "system": "x86_64-darwin",
       "group": "toplevel",
@@ -117,28 +117,28 @@
     {
       "attr_path": "espflash",
       "broken": false,
-      "derivation": "/nix/store/3lx3h0akay95kzm7zyslyw3cfam4xzcb-espflash-4.3.0.drv",
+      "derivation": "/nix/store/s83rk6i7f29c3j469qsdf5i3rfcwd4bw-espflash-4.4.0.drv",
       "description": "Serial flasher utility for Espressif SoCs and modules based on esptool.py",
       "install_id": "espflash",
       "license": "[ MIT, Apache-2.0 ]",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
-      "name": "espflash-4.3.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=567a49d1913ce81ac6e9582e3553dd90a955875f",
+      "name": "espflash-4.4.0",
       "pname": "espflash",
-      "rev": "46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
-      "rev_count": 969196,
-      "rev_date": "2026-03-24T21:09:33Z",
-      "scrape_date": "2026-03-27T05:24:55.732093Z",
+      "rev": "567a49d1913ce81ac6e9582e3553dd90a955875f",
+      "rev_count": 1017464,
+      "rev_date": "2026-06-16T02:33:49Z",
+      "scrape_date": "2026-06-17T04:47:05.264662Z",
       "stabilities": [
         "staging",
         "unstable"
       ],
       "unfree": false,
-      "version": "4.3.0",
+      "version": "4.4.0",
       "outputs_to_install": [
         "out"
       ],
       "outputs": {
-        "out": "/nix/store/k8ra2hj372dqsn7l899ck3x6ivsy8g43-espflash-4.3.0"
+        "out": "/nix/store/qzijiyy76ppf5mybmh604hc1yybcml8i-espflash-4.4.0"
       },
       "system": "x86_64-linux",
       "group": "toplevel",
@@ -147,17 +147,17 @@
     {
       "attr_path": "gnumake",
       "broken": false,
-      "derivation": "/nix/store/6gi7nfysgzgi13fzz4vf8pv47j58r25f-gnumake-4.4.1.drv",
+      "derivation": "/nix/store/sywyz1ykchhvm940gw5zka1rssbvd7fr-gnumake-4.4.1.drv",
       "description": "Tool to control the generation of non-source files from sources",
       "install_id": "gnumake",
       "license": "GPL-3.0-or-later",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=567a49d1913ce81ac6e9582e3553dd90a955875f",
       "name": "gnumake-4.4.1",
       "pname": "gnumake",
-      "rev": "46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
-      "rev_count": 969196,
-      "rev_date": "2026-03-24T21:09:33Z",
-      "scrape_date": "2026-03-27T03:38:24.482813Z",
+      "rev": "567a49d1913ce81ac6e9582e3553dd90a955875f",
+      "rev_count": 1017464,
+      "rev_date": "2026-06-16T02:33:49Z",
+      "scrape_date": "2026-06-17T03:13:14.970249Z",
       "stabilities": [
         "staging",
         "unstable"
@@ -169,10 +169,10 @@
         "out"
       ],
       "outputs": {
-        "doc": "/nix/store/hb81l6za1swj09szhxj902bjf9b9cwzc-gnumake-4.4.1-doc",
-        "info": "/nix/store/xynyfhcn9r7jd4iakdr71yb6grabjgf7-gnumake-4.4.1-info",
-        "man": "/nix/store/b2y9y7i57sml44mk7wl4ba8wr8adgavs-gnumake-4.4.1-man",
-        "out": "/nix/store/y40n7jzzy9qydb120kxgbzi55mprbkfm-gnumake-4.4.1"
+        "doc": "/nix/store/sl2ygvgjg4ml8dhyfxj5kh84x2bs1mhc-gnumake-4.4.1-doc",
+        "info": "/nix/store/6dbp1ysgxsrrn7xgjgf523faqrm605a5-gnumake-4.4.1-info",
+        "man": "/nix/store/wdm9prq35jlgwq6rjyhqxy4jzy833sfr-gnumake-4.4.1-man",
+        "out": "/nix/store/8wwiw8pwyhrkzyq28hqzxfl4z84lks81-gnumake-4.4.1"
       },
       "system": "aarch64-darwin",
       "group": "toplevel",
@@ -181,17 +181,17 @@
     {
       "attr_path": "gnumake",
       "broken": false,
-      "derivation": "/nix/store/1if96cdzkwg2hyiabzsjskhvggamkjq1-gnumake-4.4.1.drv",
+      "derivation": "/nix/store/myv1y9k84cp6x7ys0p2cxg8avsahs9c5-gnumake-4.4.1.drv",
       "description": "Tool to control the generation of non-source files from sources",
       "install_id": "gnumake",
       "license": "GPL-3.0-or-later",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=567a49d1913ce81ac6e9582e3553dd90a955875f",
       "name": "gnumake-4.4.1",
       "pname": "gnumake",
-      "rev": "46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
-      "rev_count": 969196,
-      "rev_date": "2026-03-24T21:09:33Z",
-      "scrape_date": "2026-03-27T04:13:49.085219Z",
+      "rev": "567a49d1913ce81ac6e9582e3553dd90a955875f",
+      "rev_count": 1017464,
+      "rev_date": "2026-06-16T02:33:49Z",
+      "scrape_date": "2026-06-17T03:44:10.507898Z",
       "stabilities": [
         "staging",
         "unstable"
@@ -200,14 +200,15 @@
       "version": "4.4.1",
       "outputs_to_install": [
         "man",
+        "out",
         "out"
       ],
       "outputs": {
-        "debug": "/nix/store/px43zlq4bz3zjmc91b6wb6949c8dfxvi-gnumake-4.4.1-debug",
-        "doc": "/nix/store/jhss2k9jczl72jk284kvaj9303yvylwy-gnumake-4.4.1-doc",
-        "info": "/nix/store/1qf6j3yza10lw1iy9w0qm9gliqzfw6xk-gnumake-4.4.1-info",
-        "man": "/nix/store/j4psv3ifmnw0wa8p38rxv5k6vskz4wcs-gnumake-4.4.1-man",
-        "out": "/nix/store/j8hf0sbds6y5il4vb2bz3rx0xivmnsl1-gnumake-4.4.1"
+        "debug": "/nix/store/mdv67w2xvchbs76zjdzppdkk64z5avki-gnumake-4.4.1-debug",
+        "doc": "/nix/store/bybbj9avk3g107mwhgvkzkpm6mkbl8gv-gnumake-4.4.1-doc",
+        "info": "/nix/store/bxdqxx2q13sj15ss8z5l33jd31x55j5l-gnumake-4.4.1-info",
+        "man": "/nix/store/dg3aa71vii59scbfhi02cdxnps64x6ql-gnumake-4.4.1-man",
+        "out": "/nix/store/9ngw1ippk25jjj5fjxv36xbp6iq7rxdx-gnumake-4.4.1"
       },
       "system": "aarch64-linux",
       "group": "toplevel",
@@ -216,17 +217,17 @@
     {
       "attr_path": "gnumake",
       "broken": false,
-      "derivation": "/nix/store/x36hsg814apahf4jqpjryxpglghilpw4-gnumake-4.4.1.drv",
+      "derivation": "/nix/store/d58x5la2wv5jy7xm5x90ca0hb59sv922-gnumake-4.4.1.drv",
       "description": "Tool to control the generation of non-source files from sources",
       "install_id": "gnumake",
       "license": "GPL-3.0-or-later",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=567a49d1913ce81ac6e9582e3553dd90a955875f",
       "name": "gnumake-4.4.1",
       "pname": "gnumake",
-      "rev": "46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
-      "rev_count": 969196,
-      "rev_date": "2026-03-24T21:09:33Z",
-      "scrape_date": "2026-03-27T04:46:27.389671Z",
+      "rev": "567a49d1913ce81ac6e9582e3553dd90a955875f",
+      "rev_count": 1017464,
+      "rev_date": "2026-06-16T02:33:49Z",
+      "scrape_date": "2026-06-17T04:13:07.326509Z",
       "stabilities": [
         "staging",
         "unstable"
@@ -238,10 +239,10 @@
         "out"
       ],
       "outputs": {
-        "doc": "/nix/store/2fz6r9nchhyn4i7f9gg5assx9ld2j3mm-gnumake-4.4.1-doc",
-        "info": "/nix/store/h0jgx7zbyyvhcj0lq0la6siv4d3bl9xa-gnumake-4.4.1-info",
-        "man": "/nix/store/r2qnj53aynk05zan3z2j960klx7085dq-gnumake-4.4.1-man",
-        "out": "/nix/store/bijx0sq7avqq7apvqsfb3lmza97lpcxz-gnumake-4.4.1"
+        "doc": "/nix/store/s9y438l347nky6rkl1wfk2y3b0d9i636-gnumake-4.4.1-doc",
+        "info": "/nix/store/apljbm6plyajbfrnwif0a2d4nx6w0cpf-gnumake-4.4.1-info",
+        "man": "/nix/store/m2ba4bwmfgh994xbg1iqm6zj1mdrq8h7-gnumake-4.4.1-man",
+        "out": "/nix/store/60y2hs45l18g56ykw9789b5vhhi2ls5q-gnumake-4.4.1"
       },
       "system": "x86_64-darwin",
       "group": "toplevel",
@@ -250,17 +251,17 @@
     {
       "attr_path": "gnumake",
       "broken": false,
-      "derivation": "/nix/store/rdw0vaa7xc9wzms9i0npw1a1w378y6n9-gnumake-4.4.1.drv",
+      "derivation": "/nix/store/071w65kmbjhwpx84fcg8xl2adw38321p-gnumake-4.4.1.drv",
       "description": "Tool to control the generation of non-source files from sources",
       "install_id": "gnumake",
       "license": "GPL-3.0-or-later",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=567a49d1913ce81ac6e9582e3553dd90a955875f",
       "name": "gnumake-4.4.1",
       "pname": "gnumake",
-      "rev": "46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
-      "rev_count": 969196,
-      "rev_date": "2026-03-24T21:09:33Z",
-      "scrape_date": "2026-03-27T05:24:57.132587Z",
+      "rev": "567a49d1913ce81ac6e9582e3553dd90a955875f",
+      "rev_count": 1017464,
+      "rev_date": "2026-06-16T02:33:49Z",
+      "scrape_date": "2026-06-17T04:47:06.754965Z",
       "stabilities": [
         "staging",
         "unstable"
@@ -269,14 +270,17 @@
       "version": "4.4.1",
       "outputs_to_install": [
         "man",
+        "out",
+        "out",
+        "out",
         "out"
       ],
       "outputs": {
-        "debug": "/nix/store/bzap48lhfqcjczhj2ry3gwqjh9klkgxf-gnumake-4.4.1-debug",
-        "doc": "/nix/store/0jx03f9vis4zp8b7s2ybp9anlgk68ihy-gnumake-4.4.1-doc",
-        "info": "/nix/store/pbs6fhcn3gjr6x9fzdlk0kwqg1m5gk5g-gnumake-4.4.1-info",
-        "man": "/nix/store/p75qwzzsxdhpnhdjx4fbjy20p9qxp326-gnumake-4.4.1-man",
-        "out": "/nix/store/45npani18v2m7sbkrzrv2xyilyghrny9-gnumake-4.4.1"
+        "debug": "/nix/store/q683z843wi7xs96pngh1kinnx88vn2if-gnumake-4.4.1-debug",
+        "doc": "/nix/store/wxg27bzsljjw4k72m9b2v6a0fx5a68s0-gnumake-4.4.1-doc",
+        "info": "/nix/store/03d41qgjsrhcr3fzq2z99ry07rahnj0v-gnumake-4.4.1-info",
+        "man": "/nix/store/bmvqa5ym318mymhxlwwmxq8wxal958p4-gnumake-4.4.1-man",
+        "out": "/nix/store/d3bwqm6bymhy3pdgbvf7vxjqfp31m3j1-gnumake-4.4.1"
       },
       "system": "x86_64-linux",
       "group": "toplevel",
@@ -285,28 +289,28 @@
     {
       "attr_path": "go",
       "broken": false,
-      "derivation": "/nix/store/jj5lr2n85rl99d40dcgvv8kh4p37i47d-go-1.26.1.drv",
+      "derivation": "/nix/store/3wcz439vgpp14pn7jmfnhj1gfjz16pfm-go-1.26.3.drv",
       "description": "Go Programming language",
       "install_id": "go",
       "license": "BSD-3-Clause",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
-      "name": "go-1.26.1",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=567a49d1913ce81ac6e9582e3553dd90a955875f",
+      "name": "go-1.26.3",
       "pname": "go",
-      "rev": "46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
-      "rev_count": 969196,
-      "rev_date": "2026-03-24T21:09:33Z",
-      "scrape_date": "2026-03-27T03:38:24.492547Z",
+      "rev": "567a49d1913ce81ac6e9582e3553dd90a955875f",
+      "rev_count": 1017464,
+      "rev_date": "2026-06-16T02:33:49Z",
+      "scrape_date": "2026-06-17T03:13:14.979907Z",
       "stabilities": [
         "staging",
         "unstable"
       ],
       "unfree": false,
-      "version": "1.26.1",
+      "version": "1.26.3",
       "outputs_to_install": [
         "out"
       ],
       "outputs": {
-        "out": "/nix/store/kh43nhaz1qcpwws2xq805lrmwpmn9i3k-go-1.26.1"
+        "out": "/nix/store/7ycp8j45iay38g9mjaxmy4jhwdsrb47y-go-1.26.3"
       },
       "system": "aarch64-darwin",
       "group": "toplevel",
@@ -315,28 +319,28 @@
     {
       "attr_path": "go",
       "broken": false,
-      "derivation": "/nix/store/bgblqd7l0v7x7s504csalw9b5vwf4czc-go-1.26.1.drv",
+      "derivation": "/nix/store/350ianh8b5f8pz5rb79f6hbjkzyglzn5-go-1.26.3.drv",
       "description": "Go Programming language",
       "install_id": "go",
       "license": "BSD-3-Clause",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
-      "name": "go-1.26.1",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=567a49d1913ce81ac6e9582e3553dd90a955875f",
+      "name": "go-1.26.3",
       "pname": "go",
-      "rev": "46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
-      "rev_count": 969196,
-      "rev_date": "2026-03-24T21:09:33Z",
-      "scrape_date": "2026-03-27T04:13:49.101359Z",
+      "rev": "567a49d1913ce81ac6e9582e3553dd90a955875f",
+      "rev_count": 1017464,
+      "rev_date": "2026-06-16T02:33:49Z",
+      "scrape_date": "2026-06-17T03:44:10.523965Z",
       "stabilities": [
         "staging",
         "unstable"
       ],
       "unfree": false,
-      "version": "1.26.1",
+      "version": "1.26.3",
       "outputs_to_install": [
         "out"
       ],
       "outputs": {
-        "out": "/nix/store/rz1pqbm5z3zfby250i0djfmfzzj7khg9-go-1.26.1"
+        "out": "/nix/store/jkcwcbwvhgzmxg59798z4clmj4bfv42i-go-1.26.3"
       },
       "system": "aarch64-linux",
       "group": "toplevel",
@@ -345,28 +349,28 @@
     {
       "attr_path": "go",
       "broken": false,
-      "derivation": "/nix/store/pcwra0rv1n0pq3r6sjlc6sx6a0bv499x-go-1.26.1.drv",
+      "derivation": "/nix/store/7injq3dc4gh49fwhgh403kf7n1y6f9ci-go-1.26.3.drv",
       "description": "Go Programming language",
       "install_id": "go",
       "license": "BSD-3-Clause",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
-      "name": "go-1.26.1",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=567a49d1913ce81ac6e9582e3553dd90a955875f",
+      "name": "go-1.26.3",
       "pname": "go",
-      "rev": "46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
-      "rev_count": 969196,
-      "rev_date": "2026-03-24T21:09:33Z",
-      "scrape_date": "2026-03-27T04:46:27.398605Z",
+      "rev": "567a49d1913ce81ac6e9582e3553dd90a955875f",
+      "rev_count": 1017464,
+      "rev_date": "2026-06-16T02:33:49Z",
+      "scrape_date": "2026-06-17T04:13:07.336579Z",
       "stabilities": [
         "staging",
         "unstable"
       ],
       "unfree": false,
-      "version": "1.26.1",
+      "version": "1.26.3",
       "outputs_to_install": [
         "out"
       ],
       "outputs": {
-        "out": "/nix/store/yv6jj27racylbfjw6a1cdr91ndxbgyf6-go-1.26.1"
+        "out": "/nix/store/3f2jzvxmhhlarjqxy1p7i9r5l34siz29-go-1.26.3"
       },
       "system": "x86_64-darwin",
       "group": "toplevel",
@@ -375,28 +379,29 @@
     {
       "attr_path": "go",
       "broken": false,
-      "derivation": "/nix/store/f7rh1lw0shd5471j9y6wpvc2j43czglz-go-1.26.1.drv",
+      "derivation": "/nix/store/zalhv7i71i9c3v7vm61psf2arglbzjfg-go-1.26.3.drv",
       "description": "Go Programming language",
       "install_id": "go",
       "license": "BSD-3-Clause",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
-      "name": "go-1.26.1",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=567a49d1913ce81ac6e9582e3553dd90a955875f",
+      "name": "go-1.26.3",
       "pname": "go",
-      "rev": "46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
-      "rev_count": 969196,
-      "rev_date": "2026-03-24T21:09:33Z",
-      "scrape_date": "2026-03-27T05:24:57.148265Z",
+      "rev": "567a49d1913ce81ac6e9582e3553dd90a955875f",
+      "rev_count": 1017464,
+      "rev_date": "2026-06-16T02:33:49Z",
+      "scrape_date": "2026-06-17T04:47:06.772425Z",
       "stabilities": [
         "staging",
         "unstable"
       ],
       "unfree": false,
-      "version": "1.26.1",
+      "version": "1.26.3",
       "outputs_to_install": [
+        "out",
         "out"
       ],
       "outputs": {
-        "out": "/nix/store/ckcq2mj8zk0drhaaacy6mp9d924hnr4m-go-1.26.1"
+        "out": "/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3"
       },
       "system": "x86_64-linux",
       "group": "toplevel",
@@ -405,17 +410,17 @@
     {
       "attr_path": "platformio",
       "broken": false,
-      "derivation": "/nix/store/qb6ix00dgn78dvr7x8dhhp87311h1dv6-platformio-6.1.19.drv",
+      "derivation": "/nix/store/m4w37ypjvg6zj5nbilqgnchvlh2lkypw-platformio-6.1.19.drv",
       "description": "Open source ecosystem for IoT development",
       "install_id": "platformio",
       "license": "Apache-2.0",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=567a49d1913ce81ac6e9582e3553dd90a955875f",
       "name": "platformio-6.1.19",
       "pname": "platformio",
-      "rev": "46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
-      "rev_count": 969196,
-      "rev_date": "2026-03-24T21:09:33Z",
-      "scrape_date": "2026-03-27T03:39:03.406008Z",
+      "rev": "567a49d1913ce81ac6e9582e3553dd90a955875f",
+      "rev_count": 1017464,
+      "rev_date": "2026-06-16T02:33:49Z",
+      "scrape_date": "2026-06-17T03:13:53.953381Z",
       "stabilities": [
         "staging",
         "unstable"
@@ -426,9 +431,9 @@
         "out"
       ],
       "outputs": {
-        "dist": "/nix/store/px203ydpfv7a6rq7dbcfx7q2lqbhs9ly-platformio-6.1.19-dist",
-        "out": "/nix/store/k70z9fp3q14x823pvqhr3n2iar49fqb4-platformio-6.1.19",
-        "udev": "/nix/store/01j7msypp3nksa4psrfgwzbiydc9x42i-platformio-6.1.19-udev"
+        "dist": "/nix/store/faj84b0san0jqagzv2hhf3m23l1p1d7f-platformio-6.1.19-dist",
+        "out": "/nix/store/42i7q6pqhr3k32syvnqa1qq0hi5xr0mj-platformio-6.1.19",
+        "udev": "/nix/store/z4hiifpnvh061bb7911gsk47ml25lsdn-platformio-6.1.19-udev"
       },
       "system": "aarch64-darwin",
       "group": "toplevel",
@@ -437,17 +442,17 @@
     {
       "attr_path": "platformio",
       "broken": false,
-      "derivation": "/nix/store/bpd50q9yydhgbnrj7v5r62c34xxizqwi-platformio-6.1.19.drv",
+      "derivation": "/nix/store/hzfswbcczclss3byyl8wc5y47h3d3bvp-platformio-6.1.19.drv",
       "description": "Open source ecosystem for IoT development",
       "install_id": "platformio",
       "license": "Apache-2.0",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=567a49d1913ce81ac6e9582e3553dd90a955875f",
       "name": "platformio-6.1.19",
       "pname": "platformio",
-      "rev": "46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
-      "rev_count": 969196,
-      "rev_date": "2026-03-24T21:09:33Z",
-      "scrape_date": "2026-03-27T04:14:46.653327Z",
+      "rev": "567a49d1913ce81ac6e9582e3553dd90a955875f",
+      "rev_count": 1017464,
+      "rev_date": "2026-06-16T02:33:49Z",
+      "scrape_date": "2026-06-17T03:45:07.953923Z",
       "stabilities": [
         "staging",
         "unstable"
@@ -458,7 +463,7 @@
         "out"
       ],
       "outputs": {
-        "out": "/nix/store/ysg9jjq0am0n3g1b6mqjza3ic67ap6pp-platformio-6.1.19"
+        "out": "/nix/store/k4agpifhp6br2jxbypk8dcjg2bidhdv4-platformio-6.1.19"
       },
       "system": "aarch64-linux",
       "group": "toplevel",
@@ -467,17 +472,17 @@
     {
       "attr_path": "platformio",
       "broken": false,
-      "derivation": "/nix/store/4vzjb6r6kw1kwqa1iq3y83m13fr21hv6-platformio-6.1.19.drv",
+      "derivation": "/nix/store/ija687v9n3af78rla926w8r618i4806l-platformio-6.1.19.drv",
       "description": "Open source ecosystem for IoT development",
       "install_id": "platformio",
       "license": "Apache-2.0",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=567a49d1913ce81ac6e9582e3553dd90a955875f",
       "name": "platformio-6.1.19",
       "pname": "platformio",
-      "rev": "46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
-      "rev_count": 969196,
-      "rev_date": "2026-03-24T21:09:33Z",
-      "scrape_date": "2026-03-27T04:47:06.381132Z",
+      "rev": "567a49d1913ce81ac6e9582e3553dd90a955875f",
+      "rev_count": 1017464,
+      "rev_date": "2026-06-16T02:33:49Z",
+      "scrape_date": "2026-06-17T04:13:47.578657Z",
       "stabilities": [
         "staging",
         "unstable"
@@ -488,9 +493,9 @@
         "out"
       ],
       "outputs": {
-        "dist": "/nix/store/nvx10napsqnw4fzm6m322q0vpyi7mi1a-platformio-6.1.19-dist",
-        "out": "/nix/store/c0v8j56h83k9jbms0k7nmlbvbxavs6nl-platformio-6.1.19",
-        "udev": "/nix/store/bx84yn37c7xhh4zlqfvgv82jbd8xhz9h-platformio-6.1.19-udev"
+        "dist": "/nix/store/2iznpa9dyw2v9z2c4v57l4rwfkvr696n-platformio-6.1.19-dist",
+        "out": "/nix/store/9bxa4sfkcwmfdzhbrjkpxbpfc7bklsir-platformio-6.1.19",
+        "udev": "/nix/store/55dbbk45g2zwssgxysbck6awp3rh4iy0-platformio-6.1.19-udev"
       },
       "system": "x86_64-darwin",
       "group": "toplevel",
@@ -499,17 +504,17 @@
     {
       "attr_path": "platformio",
       "broken": false,
-      "derivation": "/nix/store/7mvicnjdn41s8mqvaiis26g3h8kpq8nm-platformio-6.1.19.drv",
+      "derivation": "/nix/store/8dp925v14v91hnz42rnj695zv5kb3lzg-platformio-6.1.19.drv",
       "description": "Open source ecosystem for IoT development",
       "install_id": "platformio",
       "license": "Apache-2.0",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=567a49d1913ce81ac6e9582e3553dd90a955875f",
       "name": "platformio-6.1.19",
       "pname": "platformio",
-      "rev": "46db2e09e1d3f113a13c0d7b81e2f221c63b8ce9",
-      "rev_count": 969196,
-      "rev_date": "2026-03-24T21:09:33Z",
-      "scrape_date": "2026-03-27T05:25:57.106540Z",
+      "rev": "567a49d1913ce81ac6e9582e3553dd90a955875f",
+      "rev_count": 1017464,
+      "rev_date": "2026-06-16T02:33:49Z",
+      "scrape_date": "2026-06-17T04:48:08.317731Z",
       "stabilities": [
         "staging",
         "unstable"
@@ -520,7 +525,7 @@
         "out"
       ],
       "outputs": {
-        "out": "/nix/store/ybhqnv2wa0dpqwqdad2cyd11hn8xcbvn-platformio-6.1.19"
+        "out": "/nix/store/rh8z7c4xrpic4kl8x4k5hgnaj259vcgf-platformio-6.1.19"
       },
       "system": "x86_64-linux",
       "group": "toplevel",
