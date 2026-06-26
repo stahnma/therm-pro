@@ -106,8 +106,13 @@ export ESP32_WIFI_PASS="your-wifi-password"
 # Optional: override if not using Consul DNS
 # export ESP32_SERVER_URL="http://192.168.1.100:8088"
 
-# Generate config, build, and flash in one step (connect ESP32 via USB first)
+# Generate config, build, and flash in one step (connect the board via USB first).
+# ESP32 board (DevKit V1, etc):
 make esp32-flash
+
+# ESP32-C3 board (DevKitM-1, etc) — set the on-board LED pin first:
+# export ESP32_LED_PIN=8
+make esp32c3-flash
 ```
 
 If you have Consul DNS forwarding set up, the default server URL of `http://tp25.service.dc1.consul:8088` resolves automatically. Otherwise, set `ESP32_SERVER_URL` to the server's LAN IP.
@@ -374,7 +379,7 @@ Debug mode is especially useful for diagnosing WebAuthn passkey failures through
 
 #### ESP32 won't connect to TP25
 - Make sure the TP25 is powered on and not connected to another device (phone app, etc.)
-- The TP25 advertises as "Thermopro" -- check serial monitor output for scan results
+- Different revisions advertise as `"Thermopro"`, `"ThermoPro"`, or `"TP25"`; the firmware scans for all of these. Check the serial monitor output for scan results.
 - Try power cycling both the TP25 and ESP32
 
 #### ESP32 can't reach the server
