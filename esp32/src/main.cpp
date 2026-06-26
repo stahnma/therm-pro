@@ -29,6 +29,7 @@ void setup() {
     pinMode(LED_PIN, OUTPUT);
 
     // Connect to WiFi
+    WiFi.mode(WIFI_STA);
     WiFi.begin(WIFI_SSID, WIFI_PASS);
     Serial.print("Connecting to WiFi");
     while (WiFi.status() != WL_CONNECTED) {
@@ -36,6 +37,11 @@ void setup() {
         Serial.print(".");
         digitalWrite(LED_PIN, !digitalRead(LED_PIN));
     }
+    // NOTE: do NOT disable WiFi modem sleep here. On the single-radio
+    // ESP32-C3 the WiFi/BLE coexistence scheduler relies on modem-sleep
+    // windows to time-share the radio; forcing WIFI_PS_NONE makes
+    // coex_core_enable() assert and abort when NimBLE starts the BT
+    // controller (crash loop). Leave power save at the default.
     Serial.printf("\nConnected: %s\n", WiFi.localIP().toString().c_str());
     Serial.printf("Server URL: %s\n", gServerURL.c_str());
 
@@ -76,6 +82,8 @@ void loop() {
         HTTPClient http;
         String url = gServerURL + "/api/data";
         http.begin(url);
+        http.setConnectTimeout(5000);   // fail fast instead of hanging the loop
+        http.setTimeout(5000);
         http.addHeader("Content-Type", "application/json");
         int code = http.POST(json);
         if (code != 200) {
