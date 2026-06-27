@@ -41,12 +41,20 @@ PIP_REQUIRE_VIRTUALENV = "false"
 ## ... sourced by _your shell_ when you run 'flox activate'.
 ## -------------------------------------------------------------------
 [profile]
-# common = '''
-#   gum style \
-#   --foreground 212 --border-foreground 212 --border double \
-#   --align center --width 50 --margin "1 2" --padding "2 4" \
-#     $INTRO_MESSAGE
-# '''
+common = '''
+  # Only show the MOTD in interactive shells (not 'flox activate -- <cmd>').
+  case "$-" in
+    *i*)
+      echo ""
+      echo "therm-pro dev environment"
+      echo "  • The 'therm-pro-server' service runs bin/therm-pro-server if it's built."
+      echo "  • If it isn't running as expected, check the service logs:"
+      echo "      flox services logs therm-pro-server"
+      echo "  • Build first with: make build"
+      echo ""
+      ;;
+  esac
+'''
 ## Shell-specific customizations such as setting aliases go here:
 # bash = ...
 # zsh  = ...
@@ -59,7 +67,16 @@ PIP_REQUIRE_VIRTUALENV = "false"
 ##  $ flox activate --start-services  <- Activates & starts all
 ## ------------------------------------------------------------------
 [services]
-# myservice.command = "python3 -m http.server"
+# Start the Go server if it has been built (bin/therm-pro-server exists).
+therm-pro-server.command = '''
+  bin="$FLOX_ENV_PROJECT/bin/therm-pro-server"
+  if [ ! -x "$bin" ]; then
+    echo "therm-pro-server: binary not found at $bin; run 'make build' first" >&2
+    exit 1
+  fi
+  echo "therm-pro-server: starting $bin" >&2
+  exec "$bin"
+'''
 
 
 ## Include ----------------------------------------------------------

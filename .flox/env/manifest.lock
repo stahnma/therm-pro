@@ -20,8 +20,15 @@
       "PIP_REQUIRE_VIRTUALENV": "false"
     },
     "hook": {},
-    "profile": {},
-    "options": {}
+    "profile": {
+      "common": "  # Only show the MOTD in interactive shells (not 'flox activate -- <cmd>').\n  case \"$-\" in\n    *i*)\n      echo \"\"\n      echo \"therm-pro dev environment\"\n      echo \"  • The 'therm-pro-server' service runs bin/therm-pro-server if it's built.\"\n      echo \"  • If it isn't running as expected, check the service logs:\"\n      echo \"      flox services logs therm-pro-server\"\n      echo \"  • Build first with: make build\"\n      echo \"\"\n      ;;\n  esac\n"
+    },
+    "options": {},
+    "services": {
+      "therm-pro-server": {
+        "command": "  bin=\"$FLOX_ENV_PROJECT/bin/therm-pro-server\"\n  if [ ! -x \"$bin\" ]; then\n    echo \"therm-pro-server: binary not found at $bin; run 'make build' first\" >&2\n    exit 1\n  fi\n  echo \"therm-pro-server: starting $bin\" >&2\n  exec \"$bin\"\n"
+      }
+    }
   },
   "packages": [
     {
